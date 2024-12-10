@@ -6,5 +6,7 @@ Probabilites of tile draws in Carcassonne
 
 [python script](draw-a-before-b.py) simulating (2p Carcassonne) tile draws and printing corresponding stats. It calculates probabilities of drawing 1 out of n tiles before the other player does draw either 1 of them or 1 out of m different tiles.
 
-## Problems, ideas etc.
-Please start a [discussion](https://github.com/yzemaze/carcassonne-stats/discussions)
+[html page](carcassonne-draw-probabilities.html) that does the same as the python script. It’s self-contained (includes JS and CSS), so it could be used locally or [online](https://yzemaze.de/bga/carcassonne-draw-probabilities.html).
+
+## Feedback, problems, ideas etc.
+Please start a [discussion](https://github.com/yzemaze/carcassonne-stats/discussions) or contact me on BGA.
