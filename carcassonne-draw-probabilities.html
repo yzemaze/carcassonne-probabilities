@@ -73,9 +73,11 @@
         <label for="tilesRemaining">Total Tiles Remaining:</label>
         <input type="number" id="tilesRemaining" value="71">
         <label for="tilesA">Tiles for Player A:</label>
-        <input type="number" id="tilesA" value="1">
+        <input type="number" id="tilesA" value="0">
         <label for="tilesB">Tiles for Player B:</label>
         <input type="number" id="tilesB" value="0">
+        <label for="tilesC">Tiles for both:</label>
+        <input type="number" id="tilesC" value="1">
         <label for="iterations">Iterations:</label>
         <input type="number" id="iterations" value="100000">
         <button type="button" onclick="runSimulation()">Run Simulation</button>
@@ -98,9 +100,10 @@
         const tilesRemaining = parseInt(document.getElementById("tilesRemaining").value);
         const tilesA = parseInt(document.getElementById("tilesA").value);
         const tilesB = parseInt(document.getElementById("tilesB").value);
+        const tilesC = parseInt(document.getElementById("tilesC").value);
         const iterations = parseInt(document.getElementById("iterations").value);
 
-        const tiles = { A: tilesA, B: tilesB };
+        const tiles = { A: tilesA, B: tilesB, C: tilesC };
 
         const results = calculate(tilesRemaining, tiles, iterations);
 
@@ -112,49 +115,42 @@
     }
 
     function calculate(tilesRemaining, tiles, iterations) {
-        if (tilesRemaining < tiles.A + tiles.B) {
-            throw new Error("tiles_remaining < tiles['A'] + tiles['B']");
+        if (tilesRemaining < tiles.A + tiles.B + tiles.C) {
+            throw new Error("tiles remaining < tiles A+B+C");
         }
 
         let tileList = [];
         tileList = tileList.concat(Array(tiles.A).fill('A'));
         tileList = tileList.concat(Array(tiles.B).fill('B'));
-        tileList = tileList.concat(Array(tilesRemaining - tiles.A - tiles.B).fill('N'));
+        tileList = tileList.concat(Array(tiles.C).fill('C'));
+        tileList = tileList.concat(Array(tilesRemaining - tiles.A - tiles.B - tiles.C).fill('N'));
 
         const half = Math.ceil(tilesRemaining / 2);
+        const index = { A: 0, B: 0, C: 0 };
         const successes = { A: 0, B: 0 };
         const waits = { countA: 0, sumA: 0, countB: 0, sumB: 0 };
 
         for (let i = 0; i < iterations; i++) {
             tileList.sort(() => Math.random() - 0.5); // Shuffle the array
+            const tileListA = tileList.slice(0, half);
+            const tileListB = tileList.slice(half, tilesRemaining);
 
-            if (tiles.B) {
-                const tileListA = tileList.slice(0, half);
-                const tileListB = tileList.slice(half, tilesRemaining);
-
-                if (tileListA.includes("A")) {
-                    if (tileListB.slice(0, tileListA.indexOf("A")).includes("B")) {
-                        waits.countB++;
-                        waits.sumB += tileListB.indexOf("B");
-                        successes.B++;
-                    } else {
-                        waits.countA++;
-                        waits.sumA += tileListA.indexOf("A");
-                        successes.A++;
-                    }
-                } else if (tileListB.includes("B")) {
+            index.A = tileListA.includes("A") ? tileListA.indexOf("A") : tilesRemaining + 1;
+            index.C = tileListA.includes("C") ? tileListA.indexOf("C") : tilesRemaining + 1;
+            index.A = Math.min(index.A, index.C);
+            index.B = tileListB.includes("B") ? tileListB.indexOf("B") : tilesRemaining + 1;
+            index.C = tileListB.includes("C") ? tileListB.indexOf("C") : tilesRemaining + 1;
+            index.B = Math.min(index.B, index.C);
+            if (Math.min(index.A, index.B) < tilesRemaining) {
+                if (index.A <= index.B) {
+                    waits.countA++;
+                    waits.sumA += index.A;
+                    successes.A++;
+                } else {
                     waits.countB++;
-                    waits.sumB += tileListB.indexOf("B");
+                    waits.sumB += index.B;
                     successes.B++;
                 }
-            } else if (tileList.indexOf("A") % 2 === 0) {
-                waits.countA++;
-                waits.sumA += tileList.indexOf("A") / 2;
-                successes.A++;
-            } else {
-                waits.countB++;
-                waits.sumB += tileList.indexOf("A") / 2;
-                successes.B++;
             }
         }
 
