@@ -52,12 +52,11 @@ def calculate(tiles_remaining, tiles, iterations):
 def main(tiles_remaining, tiles, iterations):
     probability, avg_wait = calculate(tiles_remaining, tiles, iterations)
 
-    print(f"A draws 1 out of {tiles['A'] + tiles['C']} before B: {probability['A']:9.5f}")
-    print(f"B draws 1 out of {tiles['B'] + tiles['C']} before A: {probability['B']:9.5f}")
-    if tiles['B']:
-        print(f"neither draws successfully:  {1 - probability['A'] - probability['B']:9.5f}")
-    print(f"moves to wait on average A:  {avg_wait['A']:9.5f}")
-    print(f"moves to wait on average B:  {avg_wait['B']:9.5f}")
+    print(f"A draws 1 out of {tiles['A'] + tiles['C']} before B: {probability['A']*100:6.2f}%")
+    print(f"B draws 1 out of {tiles['B'] + tiles['C']} before A: {probability['B']*100:6.2f}%")
+    print(f"neither draws successfully:  {(1 - probability['A'] - probability['B'])*100:6.2f}%")
+    print(f"moves to wait on average A:  {avg_wait['A']:6.2f}")
+    print(f"moves to wait on average B:  {avg_wait['B']:6.2f}")
 
 
 if __name__ == "__main__":
