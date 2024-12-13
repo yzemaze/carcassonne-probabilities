@@ -97,14 +97,12 @@
     </div>
     <script>
     function runSimulation() {
-        const tilesRemaining = parseInt(document.getElementById("tilesRemaining").value);
-        const tilesA = parseInt(document.getElementById("tilesA").value);
-        const tilesB = parseInt(document.getElementById("tilesB").value);
-        const tilesC = parseInt(document.getElementById("tilesC").value);
-        const iterations = parseInt(document.getElementById("iterations").value);
-
+        const tilesRemaining = parseInt(document.getElementById("tilesRemaining").value) || 71;
+        const tilesA = parseInt(document.getElementById("tilesA").value) || 0;
+        const tilesB = parseInt(document.getElementById("tilesB").value) || 0;
+        const tilesC = parseInt(document.getElementById("tilesC").value) || 0;
+        const iterations = parseInt(document.getElementById("iterations").value) || 100000;
         const tiles = { A: tilesA, B: tilesB, C: tilesC };
-
         const results = calculate(tilesRemaining, tiles, iterations);
 
         document.getElementById("probA").textContent = (results.probability.A * 100).toFixed(2) + "%";
