@@ -11,11 +11,13 @@
 				}
         body {
             background-color: light-dark(#f4f4f4, #0c0c0c);
-            color: light-dark(#333, #ccc);
             font-family: sans-serif;
         }
+        body, #simulationForm input {
+            color: light-dark(#333, #ccc);
+        }
 
-        h1, h2 {
+        h1, h2, #footer {
             text-align: center;
         }
 
@@ -23,7 +25,7 @@
             align-self: center;
         }
 
-        #simulationForm, #results {
+        #simulationForm, #results, #distribution {
             border-radius: 8px;
             background-color: light-dark(#fff, #333);
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
@@ -32,15 +34,20 @@
             gap: 10px;
             margin: 0 auto;
             padding: 20px;
-            max-width: 400px;
             width: 80%;
+        }
+        #simulationForm, #results {
+        		max-width: 400px;
+        }
+        #distribution {
+        		min-width: 400px;
+            max-width: min-content;
         }
 
         #simulationForm input, #results output {
             background-color: light-dark(#f9f9f9, #222);
             border: 1px solid #ccc;
             border-radius: 4px;
-            color: light-dark(#333, #ccc);
             font-size: 0.9em;
             padding: 5px 10px;
             text-align: right;
