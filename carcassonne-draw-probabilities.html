@@ -253,8 +253,7 @@
         for (const tileType in tilesDrawnProb) {
             Object.keys(tilesDrawnProb[tileType]).forEach(key => allKeys.add(key));
         }
-        const keysArray = Array.from(allKeys);
-
+        const keysArray = Array.from(allKeys).sort((a, b) => (a-b));
         if (document.getElementById("distribution-table")) {
             document.getElementById("distribution-table").remove();
         }
