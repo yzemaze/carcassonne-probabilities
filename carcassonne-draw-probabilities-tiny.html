@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Tile Draw Simulation</title>
+	<style>
+		:root {
+			color-scheme: light dark;
+		}
+		body {
+			background-color: light-dark(#f4f4f4, #0c0c0c);
+			font-family: sans-serif;
+			font-size: 0.8em;
+			margin-top: 0;
+		}
+		body, #simulationForm input {
+			color: light-dark(#333, #ccc);
+		}
+
+		h1, h2, #footer {
+			text-align: center;
+			margin: 0.3em 0;
+		}
+
+		label {
+			align-self: center;
+		}
+
+		#top {
+			display: grid;
+			grid-auto-flow: column;
+			grid-gap: 1em;
+			padding: 0 0.5em;
+		}
+
+		#bottom {
+			padding: 0 0.5em;
+			max-width: min-content;
+		}
+
+		#simulationForm, #results, #distribution {
+			border-radius: 0.5em;
+			background-color: light-dark(#fff, #333);
+			box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+			display: grid;
+			grid-template-columns: 3fr 1fr;
+			gap: 0.5em;
+			padding: 0.8em;
+		}
+		#distribution {
+			overflow: auto;
+		}
+
+		#simulationForm input, #results output {
+			background-color: light-dark(#f9f9f9, #222);
+			border: 1px solid #ccc;
+			border-radius: 4px;
+			font-size: 1em;
+			padding: 2px 5px;
+			text-align: right;
+			min-width: 90px;
+		}
+		input::-webkit-outer-spin-button, input::-webkit-inner-spin-button {
+				margin-left: 5px;
+		}
+
+		button {
+			grid-column: span 2;
+			margin-top: 5px;
+			padding: 5px;
+			background-color: light-dark(#4CAF50, #005B04);
+			color: light-dark(white, #ddd);
+			border: none;
+			border-radius: 4px;
+			cursor: pointer;
+		}
+
+		button:hover {
+			background-color: light-dark(#45a049, #0f6913);
+		}
+
+		td {
+			text-align: right;
+			padding: 0 7px;
+		}
+		tr:hover th, td:hover,
+		table:has(tr > *:nth-child(3):hover) th:nth-child(3),
+		table:has(tr > *:nth-child(4):hover) th:nth-child(4),
+		table:has(tr > *:nth-child(5):hover) th:nth-child(5),
+		table:has(tr > *:nth-child(6):hover) th:nth-child(6),
+		table:has(tr > *:nth-child(7):hover) th:nth-child(7),
+		table:has(tr > *:nth-child(8):hover) th:nth-child(8),
+		table:has(tr > *:nth-child(9):hover) th:nth-child(9),
+		table:has(tr > *:nth-child(10):hover) th:nth-child(10),
+		table:has(tr > *:nth-child(11):hover) th:nth-child(11),
+		table:has(tr > *:nth-child(12):hover) th:nth-child(12),
+		table:has(tr > *:nth-child(13):hover) th:nth-child(13),
+		table:has(tr > *:nth-child(14):hover) th:nth-child(14),
+		table:has(tr > *:nth-child(15):hover) th:nth-child(15),
+		table:has(tr > *:nth-child(16):hover) th:nth-child(16),
+		table:has(tr > *:nth-child(17):hover) th:nth-child(17),
+		table:has(tr > *:nth-child(18):hover) th:nth-child(18),
+		table:has(tr > *:nth-child(19):hover) th:nth-child(19),
+		table:has(tr > *:nth-child(20):hover) th:nth-child(20),
+		table:has(tr > *:nth-child(21):hover) th:nth-child(21),
+		table:has(tr > *:nth-child(22):hover) th:nth-child(22),
+		table:has(tr > *:nth-child(23):hover) th:nth-child(23),
+		table:has(tr > *:nth-child(24):hover) th:nth-child(24),
+		table:has(tr > *:nth-child(25):hover) th:nth-child(25) {
+			background-color: light-dark(orange, darkred);
+		}
+	</style>
+</head>
+
+<body>
+	<div id="top">
+		<div id="left">
+			<h2>Input</h2>
+			<form id="simulationForm">
+				<label for="tilesRemaining">Remaining:</label>
+				<input type="number" id="tilesRemaining" value="71">
+				<label for="tilesA">Player A:</label>
+				<input type="number" id="tilesA" value="0">
+				<label for="tilesB">Player B:</label>
+				<input type="number" id="tilesB" value="0">
+				<label for="tilesC">Both (C):</label>
+				<input type="number" id="tilesC" value="6">
+				<label for="iterations">Iterations:</label>
+				<input type="number" id="iterations" value="100000">
+				<button type="button" onclick="runSimulation()">Run Simulation</button>
+			</form>
+		</div>
+		<div id="right">
+			<h2 class="result-header">Results</h2>
+			<div id="results">
+				<label for="probA">A before B:</label>
+				<output id="probA">0.0%</output>
+				<label for="probB">B before A:</label>
+				<output id="probB">0.0%</output>
+				<label for="probNeither">Neither:</label>
+				<output id="probNeither">0.0%</output>
+				<label for="avgWaitA">avg. wait A:</label>
+				<output id="avgWaitA">0.0</output>
+				<label for="avgWaitB">avg. wait B:</label>
+				<output id="avgWaitB">0.0</output>
+			</div>
+		</div>
+	</div>
+	<div id="bottom">
+		<h2 class="result-header">Distribution</h2>
+		<div id="distribution">
+		</div>
+	</div>
+	<div id="footer">
+			<p><a href="https://github.com/yzemaze/carcassonne-probabilities">Examples, feedback, source code etc.</a></p>
+	</div>
+	<script src="carcassonne-draw-probabilities+distribution.js"></script>
+	<script>
+	function runSimulation() {
+			const tilesRemaining = parseInt(document.getElementById("tilesRemaining").value) || 71;
+			const tilesA = parseInt(document.getElementById("tilesA").value) || 0;
+			const tilesB = parseInt(document.getElementById("tilesB").value) || 0;
+			const tilesC = parseInt(document.getElementById("tilesC").value) || 0;
+			const iterations = parseInt(document.getElementById("iterations").value) || 100000;
+			const tiles = { A: tilesA, B: tilesB, C: tilesC };
+			const results = calculate(tilesRemaining, tiles, iterations);
+
+			document.getElementById("probA").textContent = (results.probability.A * 100).toFixed(1) + "%";
+			document.getElementById("probB").textContent = (results.probability.B * 100).toFixed(1) + "%";
+			document.getElementById("probNeither").textContent = ((1 - results.probability.A - results.probability.B) * 100).toFixed(1) + "%";
+			document.getElementById("avgWaitA").textContent = results.avgWait.A.toFixed(1);
+			document.getElementById("avgWaitB").textContent = results.avgWait.B.toFixed(1);
+
+			generateTilesDrawnProbTable(results.tilesDrawnProb);
+	}
+
+	function calculate(tilesRemaining, tiles, iterations) {
+			if (tilesRemaining < tiles.A + tiles.B + tiles.C) {
+					throw new Error("tiles remaining < tiles A+B+C");
+			}
+
+			let tileList = [];
+			tileList = tileList.concat(Array(tiles.A).fill('A'));
+			tileList = tileList.concat(Array(tiles.B).fill('B'));
+			tileList = tileList.concat(Array(tiles.C).fill('C'));
+			tileList = tileList.concat(Array(tilesRemaining - tiles.A - tiles.B - tiles.C).fill('N'));
+
+			const half = Math.ceil(tilesRemaining / 2);
+			const index = { A: 0, B: 0, C: 0 };
+			const successes = { A: 0, B: 0 };
+			const waits = { countA: 0, sumA: 0, countB: 0, sumB: 0 };
+			const tilesDrawn = { AA: {}, AC: {}, AAC: {}, BB: {}, BC: {}, BBC: {} };
+
+			for (let i = 0; i < iterations; i++) {
+					tileList.sort(() => Math.random() - 0.5); // Shuffle the array
+					const tileListA = tileList.slice(0, half);
+					const tileListB = tileList.slice(half, tilesRemaining);
+
+					/* check success for A and B */
+					index.A = tileListA.includes("A") ? tileListA.indexOf("A") : tilesRemaining + 1;
+					index.C = tileListA.includes("C") ? tileListA.indexOf("C") : tilesRemaining + 1;
+					index.A = Math.min(index.A, index.C);
+					index.B = tileListB.includes("B") ? tileListB.indexOf("B") : tilesRemaining + 1;
+					index.C = tileListB.includes("C") ? tileListB.indexOf("C") : tilesRemaining + 1;
+					index.B = Math.min(index.B, index.C);
+					if (Math.min(index.A, index.B) < tilesRemaining) {
+							if (index.A <= index.B) {
+									waits.countA++;
+									waits.sumA += index.A;
+									successes.A++;
+							} else {
+									waits.countB++;
+									waits.sumB += index.B;
+									successes.B++;
+							}
+					}
+
+					/* calculate frequency for table */
+					freqA = frequency(tileListA);
+					tilesDrawn.AA[freqA.A] = (tilesDrawn.AA[freqA.A] || 0) + 1;
+					tilesDrawn.AC[freqA.C] = (tilesDrawn.AC[freqA.C] || 0) + 1;
+					tilesDrawn.AAC[freqA.A + freqA.C] = (tilesDrawn.AAC[freqA.A + freqA.C] || 0) + 1;
+					freqB = frequency(tileListB);
+					tilesDrawn.BB[freqB.B] = (tilesDrawn.BB[freqB.B] || 0) + 1;
+					tilesDrawn.BC[freqB.C] = (tilesDrawn.BC[freqB.C] || 0) + 1;
+					tilesDrawn.BBC[freqB.B + freqB.C] = (tilesDrawn.BBC[freqB.B + freqB.C] || 0) + 1;
+
+			}
+
+			const probability = {
+					A: successes.A / iterations,
+					B: successes.B / iterations
+			};
+
+			const avgWait = {
+					A: waits.countA ? waits.sumA / waits.countA : 0,
+					B: waits.countB ? waits.sumB / waits.countB : 0
+			};
+
+			const tilesDrawnProb = {
+					'AA': Object.fromEntries(Object.entries(tilesDrawn['AA']).map(([key, value]) => [key, value / iterations])),
+					'AC': Object.fromEntries(Object.entries(tilesDrawn['AC']).map(([key, value]) => [key, value / iterations])),
+					'AAC': Object.fromEntries(Object.entries(tilesDrawn['AAC']).map(([key, value]) => [key, value / iterations])),
+					'BB': Object.fromEntries(Object.entries(tilesDrawn['BB']).map(([key, value]) => [key, value / iterations])),
+					'BC': Object.fromEntries(Object.entries(tilesDrawn['BC']).map(([key, value]) => [key, value / iterations])),
+					'BBC': Object.fromEntries(Object.entries(tilesDrawn['BBC']).map(([key, value]) => [key, value / iterations]))
+			};
+
+			return { probability, avgWait, tilesDrawnProb };
+	}
+
+	function frequency(tileList) {
+			const frequency = { A: 0, B: 0, C: 0 };
+			tileList.forEach(item => {
+					if (frequency.hasOwnProperty(item)) {
+							frequency[item]++;
+					}
+			});
+			return frequency;
+	}
+
+	function generateTilesDrawnProbTable(tilesDrawnProb) {
+			// Get all unique keys across all tile types
+			const allKeys = new Set();
+			for (const tileType in tilesDrawnProb) {
+					Object.keys(tilesDrawnProb[tileType]).forEach(key => allKeys.add(key));
+			}
+			const keysArray = Array.from(allKeys).sort((a, b) => (a-b));
+			if (document.getElementById("distribution-table")) {
+					document.getElementById("distribution-table").remove();
+			}
+			const table = document.createElement('table');
+			table.id = "distribution-table";
+			const headerRow = document.createElement('tr');
+			["Pl.", "Tiles"].forEach(item => {
+					const headerCell = document.createElement('th');
+					headerCell.textContent = item;
+					headerRow.appendChild(headerCell);
+			});
+
+			keysArray.forEach(key => {
+					const th = document.createElement('th');
+					th.textContent = key;
+					headerRow.appendChild(th);
+			});
+			table.appendChild(headerRow);
+
+			// Iterate through the tilesDrawnProb object to generate rows
+			const tileTypes = ['AA', 'AC', 'AAC', 'BB', 'BC', 'BBC'];
+			tileTypes.forEach(tileType => {
+					const row = document.createElement('tr');
+
+					const playerCell = document.createElement('th');
+					playerCell.textContent = tileType.slice(0, 1);
+					row.appendChild(playerCell);
+					const tileTypeCell = document.createElement('th');
+					tileTypeCell.textContent = tileType.slice(1, 3);
+					row.appendChild(tileTypeCell);
+
+					keysArray.forEach(key => {
+							const probCell = document.createElement('td');
+							const prob = tilesDrawnProb[tileType][key];
+							probCell.textContent = prob !== undefined ? (prob * 100).toFixed(1) : '-';
+							probCell.style.textAlign = probCell.textContent == "-" ? 'center' : 'none';
+							row.appendChild(probCell);
+					});
+
+					table.appendChild(row);
+			});
+
+			document.getElementById("distribution").appendChild(table);
+	}
+	</script>
+</body>
+
+</html>
