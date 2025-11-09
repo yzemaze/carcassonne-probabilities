@@ -42,6 +42,7 @@ B is the 2nd player and according to BGA’s interface there are 6 tiles remaini
 1. A will likely win about 45% of the time.
 2. B should draw the vanilla cap before A gets the dagger in 25% of the cases.
 3. In 30% of simulations neither one got one of the specified tiles.
+4. In case of success A would have to wait 0.78 moves on average. (0 = their next move, 1 = their move after that etc. )
 
 ## Feedback, problems, ideas etc.
 Please start a [discussion](https://github.com/yzemaze/carcassonne-probabilities/discussions) or contact me on BGA.
