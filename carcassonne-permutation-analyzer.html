@@ -5,32 +5,172 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Permutation Analyzer</title>
     <style>
-        :root { color-scheme: light dark; }
-        body { background-color: light-dark(#f4f4f4, #0c0c0c); font-family: sans-serif; font-size: 0.8em; }
-        body, #calculatorForm input, #calculatorForm select { color: light-dark(#333, #ccc); }
-        h1, h2, h3, #footer { text-align: center; margin: 15px 0 10px 0; }
-        label { align-self: center; }
-        #calculatorForm, #results { border-radius: 8px; background-color: light-dark(#fff, #333); box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); display: grid; gap: 10px; margin: 20px auto; padding: 15px; width: 80%; max-width: 400px; }
-        #calculatorForm { grid-template-columns: 3fr 1fr; }
-        #results { grid-template-columns: 1fr; }
-        #calculatorForm input, #calculatorForm select { background-color: light-dark(#f9f9f9, #222); border: 1px solid #ccc; border-radius: 4px; font-size: 1em; padding: 2px 5px; text-align: right; min-width: 90px; }
-        .full-width { grid-column: span 2; }
-        .condition-group { grid-column: span 2; border: 1px solid #ccc; border-radius: 4px; padding: 10px; }
-        .group-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .group-header h3 { margin: 0; }
-        .set-operator-container { grid-column: span 2; text-align: center; padding: 5px;}
-        .condition-line { display: grid; grid-template-columns: auto auto auto 1fr auto; gap: 5px; align-items: center; margin-bottom: 5px; }
-        .condition-line .op-selector { grid-column: 1 / -1; margin-bottom: 5px; }
-        .action-btn { border: none; border-radius: 4px; cursor: pointer; padding: 0; width: 24px; height: 24px; line-height: 24px; font-size: 1.2em; font-weight: bold; text-align: center; display: inline-flex; justify-content: center; align-items: center; }
-        .add-btn { background-color: light-dark(#4CAF50, #005B04); color: white; }
-        .remove-btn { background: #ff4d4d; color: white; }
-        button { margin-top: 5px; padding: 5px; background-color: light-dark(#4CAF50, #005B04); color: light-dark(white, #ddd); border: none; border-radius: 4px; cursor: pointer; }
-        button:hover { background-color: light-dark(#45a049, #0f6913); }
-        progress { width: 100%;}
-        #results table { width: 100%; border-collapse: collapse; }
-        #results th, #results td { padding: 8px; text-align: right; border: 1px solid #555;}
-        #results th:first-child { text-align: left;}
-        #footer p { display: flex; justify-content: center; gap: 15px; }
+        :root {
+            color-scheme: light dark;
+        }
+
+        body {
+            background-color: light-dark(#f4f4f4, #0c0c0c);
+            font-family: sans-serif;
+            font-size: 0.8em;
+        }
+
+        body,
+        #calculatorForm input,
+        #calculatorForm select {
+            color: light-dark(#333, #ccc);
+        }
+
+        h1,
+        h2,
+        h3,
+        #footer {
+            text-align: center;
+            margin: 15px 0 10px 0;
+        }
+
+        label {
+            align-self: center;
+        }
+
+        #calculatorForm,
+        #results {
+            border-radius: 8px;
+            background-color: light-dark(#fff, #333);
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            display: grid;
+            gap: 10px;
+            margin: 20px auto;
+            padding: 15px;
+            width: 80%;
+            max-width: 400px;
+        }
+
+        #calculatorForm {
+            grid-template-columns: 3fr 1fr;
+        }
+
+        #results {
+            grid-template-columns: 1fr;
+        }
+
+        #calculatorForm input,
+        #calculatorForm select {
+            background-color: light-dark(#f9f9f9, #222);
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1em;
+            padding: 2px 5px;
+            text-align: right;
+            min-width: 90px;
+        }
+
+        .full-width {
+            grid-column: span 2;
+        }
+
+        .condition-group {
+            grid-column: span 2;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 10px;
+        }
+
+        .group-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .group-header h3 {
+            margin: 0;
+        }
+
+        .set-operator-container {
+            grid-column: span 2;
+            text-align: center;
+            padding: 5px;
+        }
+
+        .condition-line {
+            display: grid;
+            grid-template-columns: auto auto auto 1fr auto;
+            gap: 5px;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+
+        .condition-line .op-selector {
+            grid-column: 1 / -1;
+            margin-bottom: 5px;
+        }
+
+        .action-btn {
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            padding: 0;
+            width: 24px;
+            height: 24px;
+            line-height: 24px;
+            font-size: 1.2em;
+            font-weight: bold;
+            text-align: center;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .add-btn {
+            background-color: light-dark(#4CAF50, #005B04);
+            color: white;
+        }
+
+        .remove-btn {
+            background: #ff4d4d;
+            color: white;
+        }
+
+        button {
+            margin-top: 5px;
+            padding: 5px;
+            background-color: light-dark(#4CAF50, #005B04);
+            color: light-dark(white, #ddd);
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: light-dark(#45a049, #0f6913);
+        }
+
+        progress {
+            width: 100%;
+        }
+
+        #results table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        #results th,
+        #results td {
+            padding: 8px;
+            text-align: right;
+            border: 1px solid #555;
+        }
+
+        #results th:first-child {
+            text-align: left;
+        }
+
+        #footer p {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
     </style>
 </head>
 <body>
@@ -42,6 +182,18 @@
         <label for="specificTiles">Specific Tiles:</label>
         <input type="text" id="specificTiles" value="s,rd,m,v">
 
+        <label for="method">Method:</label>
+        <select id="method" onchange="toggleCalcMethod()">
+            <option value="exact">Calculation</option>
+            <option value="simulation">Simulation</option>
+        </select>
+        
+        <div id="simulation-options" style="display: none; grid-column: span 2; grid-template-columns: 3fr 1fr; gap: 10px;">
+            <label for="iterations">Iterations:</label>
+            <input type="number" id="iterations" value="100000" min="1000">
+        </div>
+
+        <div id="exact-warning" style="font-size: 0.9em; color: #ff9800; grid-column: span 2; display: none;">Warning: Exact calculation is slow for >10 tiles!</div>
         <div class="full-width">
             <label for="evalOrder" style="text-align: right;">Evaluation Order:</label>
             <select id="evalOrder">
@@ -134,10 +286,25 @@
             addCondition('1');
             addCondition('2');
             addCondition('3');
-            // Call handleOperatorChange for initial state check
             document.getElementById('op1').dispatchEvent(new Event('change'));
             document.getElementById('op2').dispatchEvent(new Event('change'));
+            document.getElementById('totalTiles').addEventListener('input', () => validateTiles(document.getElementById('totalTiles')));
+            toggleCalcMethod();
         });
+
+        function toggleCalcMethod() {
+            const isSimulation = document.getElementById('method').value === 'simulation';
+            document.getElementById('simulation-options').style.display = isSimulation ? 'grid' : 'none';
+
+            const totalTilesInput = document.getElementById('totalTiles');
+            validateTiles(totalTilesInput); // Re-validate tiles when method changes
+
+            const totalTiles = parseInt(totalTilesInput.value);
+            const isExact = !isSimulation;
+            const showWarning = isExact && totalTiles > 10;
+            document.getElementById('exact-warning').style.display = showWarning ? 'block' : 'none';
+        }
+
 
         function handleOperatorChange(selectElement) {
             const op1Select = document.getElementById('op1');
@@ -177,10 +344,13 @@
         // --- UI Functions ---
         function validateTiles(input) {
             let value = parseInt(input.value);
+            const isSimulation = document.getElementById('method').value === 'simulation';
+            const maxTiles = isSimulation ? 100 : 10; // Max 100 for simulation, 10 for exact
+
             if (isNaN(value) || value < 2) {
                 input.value = 2;
-            } else if (value > 10) {
-                input.value = 10;
+            } else if (value > maxTiles) {
+                input.value = maxTiles;
             }
         }
 
@@ -190,7 +360,7 @@
             const line = document.createElement('div');
             line.className = 'condition-line';
             const playerASelected = (groupId === '2') ? '' : 'selected'; // Default Player for Set 2 is B
-            const playerBSelected = (groupId === '2') ? 'selected' : '';
+            const playerBSelected = (groupId === '2') ? 'selected';
             line.innerHTML = `
                 <select class="op-selector" style="display: ${lineIndex === 0 ? 'none' : 'block'};">
                     <option>AND</option><option>OR</option><option>XOR</option><option>NOR</option><option>NAND</option>
@@ -278,7 +448,17 @@
         }
         
         // --- Main Calculation ---
-        async function runCalculation() {
+        function runCalculation() {
+            const method = document.getElementById('method').value;
+            if (method === 'exact') {
+                runExactCalculation();
+            }
+            else {
+                runSimulation();
+            }
+        }
+        
+        async function runExactCalculation() {
             validateTiles(document.getElementById('totalTiles'));
             const totalTiles = parseInt(document.getElementById('totalTiles').value);
             
@@ -308,62 +488,120 @@
                 const chunkSize = Math.min(10000, totalPermutations - processedPermutations);
                 for (let i = 0; i < chunkSize; i++) {
                     const perm = permutationGenerator.next().value;
-                    if (!perm) { finalize(); return; }
+                    if (!perm) { finalize(totalPermutations, successfulPerms, false); return; }
                     processedPermutations++;
                     
-                    let isSuccess = false;
-
-                    // --- Evaluation Dispatcher ---
-                    let res1_val, res2_val;
-
-                    if (op1 !== 'BEFORE' && op2 !== 'BEFORE') {
-                        const g1Met = evalState(perm, group1);
-                        const g2Met = evalState(perm, group2);
-                        const g3Met = evalState(perm, group3);
-                        if (evalOrder === 'ltr') {
-                            res1_val = doLogicalOp(g1Met, g2Met, op1);
-                            isSuccess = doLogicalOp(res1_val, g3Met, op2);
-                        } else {
-                            res2_val = doLogicalOp(g2Met, g3Met, op2);
-                            isSuccess = doLogicalOp(g1Met, res2_val, op1);
-                        }
-                    } 
-                    else if (op1 === 'BEFORE') {
-                        const raceWins = evalRace(perm, group1, group2);
-                        const g3Met = evalState(perm, group3);
-                        isSuccess = doLogicalOp(raceWins, g3Met, op2);
-                    } 
-                    else if (op2 === 'BEFORE') {
-                        const raceWins = evalRace(perm, group2, group3);
-                        const g1Met = evalState(perm, group1);
-                        isSuccess = doLogicalOp(g1Met, raceWins, op1);
-                    }
-
-                    if (isSuccess) {
+                    if (evaluatePermutation(perm, group1, group2, group3, op1, op2, evalOrder)) {
                         successfulPerms++;
                         if (storedWinningPermutations.length < 10000) storedWinningPermutations.push(perm.slice());
                     }
                 }
 
                 progress.value = (processedPermutations / totalPermutations) * 100;
-                if (processedPermutations < totalPermutations) setTimeout(processChunk, 0); else finalize();
-            }
-
-            function finalize() {
-                const probSuccess = totalPermutations > 0 ? successfulPerms / totalPermutations : 0;
-                document.getElementById('res-perms-abs').textContent = totalPermutations;
-                document.getElementById('res-met-abs').textContent = successfulPerms;
-                document.getElementById('res-not-met-abs').textContent = totalPermutations - successfulPerms;
-                document.getElementById('res-met-perc').textContent = `${(probSuccess * 100).toFixed(2)}%`;
-                document.getElementById('res-not-met-perc').textContent = `${((1 - probSuccess) * 100).toFixed(2)}%`;
-                progress.style.display = 'none';
-                if (storedWinningPermutations.length > 0) document.getElementById('listPermutationsBtn').disabled = false;
+                if (processedPermutations < totalPermutations) setTimeout(processChunk, 0); else finalize(totalPermutations, successfulPerms, false);
             }
             
             processChunk();
         }
 
+        async function runSimulation() {
+            validateTiles(document.getElementById('totalTiles'));
+            const totalTiles = parseInt(document.getElementById('totalTiles').value);
+            const iterations = parseInt(document.getElementById('iterations').value);
+
+            const group1 = parseConditions('1');
+            const group2 = parseConditions('2');
+            const group3 = parseConditions('3');
+            const op1 = document.getElementById('op1').value;
+            const op2 = document.getElementById('op2').value;
+            const evalOrder = document.getElementById('evalOrder').value;
+
+            const deck = [...document.getElementById('specificTiles').value.split(',').map(t => t.trim()).filter(Boolean),
+                          ...Array(totalTiles - document.getElementById('specificTiles').value.split(',').map(t => t.trim()).filter(Boolean).length).fill('placeholder')];
+
+            const progress = document.getElementById('progress');
+            progress.style.display = 'block';
+            ['res-perms-abs', 'res-met-abs', 'res-met-perc', 'res-not-met-abs', 'res-not-met-perc'].forEach(id => document.getElementById(id).textContent = '...');
+            storedWinningPermutations = [];
+            document.getElementById('listPermutationsBtn').disabled = true;
+            document.getElementById('permutation-list-container').style.display = 'none';
+
+            let successfulPerms = 0;
+            let processedIterations = 0;
+
+            function processChunk() {
+                const chunkSize = Math.min(10000, iterations - processedIterations);
+                for (let i = 0; i < chunkSize; i++) {
+                    const perm = deck.slice();
+                    shuffle(perm);
+                    
+                    if (evaluatePermutation(perm, group1, group2, group3, op1, op2, evalOrder)) {
+                        successfulPerms++;
+                        if (storedWinningPermutations.length < 10000) storedWinningPermutations.push(perm);
+                    }
+                    processedIterations++;
+                }
+
+                progress.value = (processedIterations / iterations) * 100;
+                if (processedIterations < iterations) {
+                    setTimeout(processChunk, 0);
+                } else {
+                    finalize(iterations, successfulPerms, true);
+                }
+            }
+
+            processChunk();
+        }
+
+        function finalize(total, successful, isSimulation) {
+            const probSuccess = total > 0 ? successful / total : 0;
+            document.getElementById('res-perms-abs').textContent = isSimulation ? `${total} (sim.)` : total;
+            document.getElementById('res-met-abs').textContent = successful;
+            document.getElementById('res-not-met-abs').textContent = total - successful;
+            document.getElementById('res-met-perc').textContent = `${(probSuccess * 100).toFixed(2)}%`;
+            document.getElementById('res-not-met-perc').textContent = `${((1 - probSuccess) * 100).toFixed(2)}%`;
+            progress.style.display = 'none';
+            if (storedWinningPermutations.length > 0) document.getElementById('listPermutationsBtn').disabled = false;
+        }
+
+
+        function evaluatePermutation(perm, group1, group2, group3, op1, op2, evalOrder) {
+            let isSuccess = false;
+            let res1_val, res2_val;
+
+            if (op1 !== 'BEFORE' && op2 !== 'BEFORE') {
+                const g1Met = evalState(perm, group1);
+                const g2Met = evalState(perm, group2);
+                const g3Met = evalState(perm, group3);
+                if (evalOrder === 'ltr') {
+                    res1_val = doLogicalOp(g1Met, g2Met, op1);
+                    isSuccess = doLogicalOp(res1_val, g3Met, op2);
+                } else {
+                    res2_val = doLogicalOp(g2Met, g3Met, op2);
+                    isSuccess = doLogicalOp(g1Met, res2_val, op1);
+                }
+            } 
+            else if (op1 === 'BEFORE') {
+                const raceWins = evalRace(perm, group1, group2);
+                const g3Met = evalState(perm, group3);
+                isSuccess = doLogicalOp(raceWins, g3Met, op2);
+            } 
+            else if (op2 === 'BEFORE') {
+                const raceWins = evalRace(perm, group2, group3);
+                const g1Met = evalState(perm, group1);
+                isSuccess = doLogicalOp(g1Met, raceWins, op1);
+            }
+            return isSuccess;
+        }
+
         // --- Evaluation Helpers ---
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
         function factorial(n) { let r=1; for(let i=2;i<=n;i++) r*=i; return r; }
 
         function evalState(perm, group) {
