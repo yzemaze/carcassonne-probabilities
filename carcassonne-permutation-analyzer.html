@@ -246,7 +246,7 @@
             <div id="group3-conditions"></div>
         </div>
 
-        <button type="button" class="full-width" onclick="runCalculation()">Calculate Probabilities</button>
+        <button type="button" id="calculateButton" class="full-width" onclick="runCalculation()">Calculate Probabilities</button>
         <progress id="progress" value="0" max="100" class="full-width" style="display: none;"></progress>
     </form>
 
@@ -318,8 +318,14 @@
 
             const totalTiles = parseInt(totalTilesInput.value);
             const isExact = !isSimulation;
+            totalTilesInput.max = isExact ? 10 : 100; // Update max attribute dynamically
+
             const showWarning = isExact && totalTiles > 10;
             document.getElementById('exact-warning').style.display = showWarning ? 'block' : 'none';
+
+            // Update button text
+            const calculateButton = document.getElementById('calculateButton');
+            calculateButton.textContent = isSimulation ? 'Run Simulation' : 'Calculate Probabilities';
         }
 
 
@@ -623,14 +629,24 @@
 
         function evalState(perm, group) {
             const drawsA = [], drawsB = [];
-            for(let t=0; t<perm.length; t++) { (t % 2 === 0) ? drawsA.push(perm[t]) : drawsB.push(perm[t]); }
+            for (let t = 0; t < perm.length; t++) {
+                if (t % 2 === 0) {
+                    drawsA.push(perm[t]);
+                } else {
+                    drawsB.push(perm[t]);
+                }
+            }
             return evaluateGroup(group, drawsA, drawsB);
         }
 
         function evalRace(perm, successGroup, failureGroup) {
             const drawsA = [], drawsB = [];
             for (let turn = 0; turn < perm.length; turn++) {
-                (turn % 2 === 0) ? drawsA.push(perm[turn]) : drawsB.push(perm[turn]);
+                if (turn % 2 === 0) {
+                    drawsA.push(perm[turn]);
+                } else {
+                    drawsB.push(perm[turn]);
+                }
                 if (evaluateGroup(successGroup, drawsA, drawsB)) return true;
                 if (evaluateGroup(failureGroup, drawsA, drawsB)) return false;
             }
