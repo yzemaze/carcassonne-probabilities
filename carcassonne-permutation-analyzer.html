@@ -16,8 +16,8 @@
         }
 
         body,
-        #calculatorForm input,
-        #calculatorForm select {
+        #analyzerForm input,
+        #analyzerForm select {
             color: light-dark(#333, #ccc);
         }
 
@@ -33,7 +33,7 @@
             align-self: center;
         }
 
-        #calculatorForm,
+        #analyzerForm,
         #results {
             border-radius: 8px;
             background-color: light-dark(#fff, #333);
@@ -46,7 +46,7 @@
             max-width: 400px;
         }
 
-        #calculatorForm {
+        #analyzerForm {
             grid-template-columns: 3fr 1fr;
         }
 
@@ -54,20 +54,34 @@
             grid-template-columns: 1fr;
         }
 
-        #calculatorForm input,
-        #calculatorForm select {
+        input,
+        select {
             background-color: light-dark(#f9f9f9, #222);
             border: 1px solid #ccc;
             border-radius: 4px;
             font-size: 1em;
             padding: 2px 5px;
-            text-align: right;
-            min-width: 90px;
+            min-width: 30px;
         }
+
+				input.tiles {
+						justify-self: start;
+				}
+
+				#totalTiles, #iterations {
+						text-align: right;
+				}
 
         .full-width {
             grid-column: span 2;
         }
+
+				.settings {
+						display: grid;
+						grid-column: span 2;
+						grid-template-columns: 3fr 1fr;
+						gap: 10px;
+				}
 
         .condition-group {
             grid-column: span 2;
@@ -103,7 +117,7 @@
 
         .condition-line .op-selector {
             grid-column: 1 / -1;
-            margin-bottom: 5px;
+						justify-self: start;
         }
 
         .action-btn {
@@ -133,14 +147,17 @@
         }
 
         button {
-            margin-top: 5px;
-            padding: 5px;
-            background-color: light-dark(#4CAF50, #005B04);
-            color: light-dark(white, #ddd);
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
+						padding: 5px;
+						background-color: light-dark(#4CAF50, #005B04);
+						color: light-dark(white, #ddd);
+						border: none;
+						border-radius: 4px;
+						cursor: pointer;
         }
+
+				button.full-width {
+						margin-top: 5px;
+				}
 
         button:hover {
             background-color: light-dark(#45a049, #0f6913);
@@ -176,11 +193,11 @@
 <body>
     <h1>Permutation Analyzer</h1>
 
-    <form id="calculatorForm" onsubmit="return false;">
+    <form id="analyzerForm" onsubmit="return false;">
         <label for="totalTiles">Total Tiles:</label>
         <input type="number" id="totalTiles" value="8" min="2" max="10" onchange="validateTiles(this)">
         <label for="specificTiles">Specific Tiles:</label>
-        <input type="text" id="specificTiles" value="s,rd,m,v">
+        <input type="text" id="specificTiles" placeholder="e.g. a, b">
 
         <label for="method">Method:</label>
         <select id="method" onchange="toggleCalcMethod()">
@@ -188,17 +205,17 @@
             <option value="simulation">Simulation</option>
         </select>
         
-        <div id="simulation-options" style="display: none; grid-column: span 2; grid-template-columns: 3fr 1fr; gap: 10px;">
+        <div id="simulation-options" class="settings" style="display: none;">
             <label for="iterations">Iterations:</label>
             <input type="number" id="iterations" value="100000" min="1000">
         </div>
 
         <div id="exact-warning" style="font-size: 0.9em; color: #ff9800; grid-column: span 2; display: none;">Warning: Exact calculation is slow for >10 tiles!</div>
-        <div class="full-width">
-            <label for="evalOrder" style="text-align: right;">Evaluation Order:</label>
+        <div class="settings">
+            <label for="evalOrder">Evaluation Order:</label>
             <select id="evalOrder">
-                <option value="ltr" selected>(Set 1 op1 Set 2) op2 Set 3</option>
-                <option value="rtl">Set 1 op1 (Set 2 op2 Set 3)</option>
+                <option value="ltr" selected>(S1 o S2) o S3</option>
+                <option value="rtl">S1 o (S2 o S3)</option>
             </select>
         </div>
 
