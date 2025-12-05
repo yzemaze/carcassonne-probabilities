@@ -360,7 +360,7 @@
             const line = document.createElement('div');
             line.className = 'condition-line';
             const playerASelected = (groupId === '2') ? '' : 'selected'; // Default Player for Set 2 is B
-            const playerBSelected = (groupId === '2') ? 'selected';
+            const playerBSelected = (groupId === '2') ? 'selected' : '';
             line.innerHTML = `
                 <select class="op-selector" style="display: ${lineIndex === 0 ? 'none' : 'block'};">
                     <option>AND</option><option>OR</option><option>XOR</option><option>NOR</option><option>NAND</option>
