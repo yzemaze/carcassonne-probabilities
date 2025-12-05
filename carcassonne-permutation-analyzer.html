@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Permutation Analyzer</title>
+    <style>
+        :root { color-scheme: light dark; }
+        body { background-color: light-dark(#f4f4f4, #0c0c0c); font-family: sans-serif; font-size: 0.8em; }
+        body, #calculatorForm input, #calculatorForm select { color: light-dark(#333, #ccc); }
+        h1, h2, h3, #footer { text-align: center; margin: 15px 0 10px 0; }
+        label { align-self: center; }
+        #calculatorForm, #results { border-radius: 8px; background-color: light-dark(#fff, #333); box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); display: grid; gap: 10px; margin: 20px auto; padding: 15px; width: 80%; max-width: 400px; }
+        #calculatorForm { grid-template-columns: 3fr 1fr; }
+        #results { grid-template-columns: 1fr; }
+        #calculatorForm input, #calculatorForm select { background-color: light-dark(#f9f9f9, #222); border: 1px solid #ccc; border-radius: 4px; font-size: 1em; padding: 2px 5px; text-align: right; min-width: 90px; }
+        .full-width { grid-column: span 2; }
+        .condition-group { grid-column: span 2; border: 1px solid #ccc; border-radius: 4px; padding: 10px; }
+        .group-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .group-header h3 { margin: 0; }
+        .set-operator-container { grid-column: span 2; text-align: center; padding: 5px;}
+        .condition-line { display: grid; grid-template-columns: auto auto auto 1fr auto; gap: 5px; align-items: center; margin-bottom: 5px; }
+        .condition-line .op-selector { grid-column: 1 / -1; margin-bottom: 5px; }
+        .action-btn { border: none; border-radius: 4px; cursor: pointer; padding: 0; width: 24px; height: 24px; line-height: 24px; font-size: 1.2em; font-weight: bold; text-align: center; display: inline-flex; justify-content: center; align-items: center; }
+        .add-btn { background-color: light-dark(#4CAF50, #005B04); color: white; }
+        .remove-btn { background: #ff4d4d; color: white; }
+        button { margin-top: 5px; padding: 5px; background-color: light-dark(#4CAF50, #005B04); color: light-dark(white, #ddd); border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background-color: light-dark(#45a049, #0f6913); }
+        progress { width: 100%;}
+        #results table { width: 100%; border-collapse: collapse; }
+        #results th, #results td { padding: 8px; text-align: right; border: 1px solid #555;}
+        #results th:first-child { text-align: left;}
+        #footer p { display: flex; justify-content: center; gap: 15px; }
+    </style>
+</head>
+<body>
+    <h1>Permutation Analyzer</h1>
+
+    <form id="calculatorForm" onsubmit="return false;">
+        <label for="totalTiles">Total Tiles:</label>
+        <input type="number" id="totalTiles" value="8" min="2" max="10" onchange="validateTiles(this)">
+        <label for="specificTiles">Specific Tiles:</label>
+        <input type="text" id="specificTiles" value="s,rd,m,v">
+
+        <div class="full-width">
+            <label for="evalOrder" style="text-align: right;">Evaluation Order:</label>
+            <select id="evalOrder">
+                <option value="ltr" selected>(Set 1 op1 Set 2) op2 Set 3</option>
+                <option value="rtl">Set 1 op1 (Set 2 op2 Set 3)</option>
+            </select>
+        </div>
+
+        <div class="condition-group full-width">
+            <div class="group-header"><h3>Set 1</h3><button type="button" class="action-btn add-btn" onclick="addCondition('1')">+</button></div>
+            <div id="group1-conditions"></div>
+        </div>
+
+        <div class="set-operator-container">
+            <select class="set-operator" id="op1" onchange="handleOperatorChange(this)">
+                <option>AND</option> <option>OR</option> <option>XOR</option> <option>NOR</option> <option>NAND</option> <option selected>BEFORE</option>
+            </select>
+        </div>
+
+        <div class="condition-group full-width">
+            <div class="group-header"><h3>Set 2</h3><button type="button" class="action-btn add-btn" onclick="addCondition('2')">+</button></div>
+            <div id="group2-conditions"></div>
+        </div>
+
+        <div class="set-operator-container">
+            <select class="set-operator" id="op2" onchange="handleOperatorChange(this)">
+                <option selected>AND</option> <option>OR</option> <option>XOR</option> <option>NOR</option> <option>NAND</option> <option>BEFORE</option>
+            </select>
+        </div>
+
+        <div id="groupC-container" class="condition-group full-width">
+            <div class="group-header"><h3>Set 3</h3><button type="button" class="action-btn add-btn" onclick="addCondition('3')">+</button></div>
+            <div id="group3-conditions"></div>
+        </div>
+
+        <button type="button" class="full-width" onclick="runCalculation()">Calculate Probabilities</button>
+        <progress id="progress" value="0" max="100" class="full-width" style="display: none;"></progress>
+    </form>
+
+    <h2 class="result-header">Results</h2>
+    <div id="results">
+        <table>
+            <thead>
+                <tr>
+                    <th></th>
+                    <th>n</th>
+                    <th>%</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <th>Permutations</th>
+                    <td id="res-perms-abs">...</td>
+                    <td>100.00%</td>
+                </tr>
+                <tr>
+                    <th>Condition Met</th>
+                    <td id="res-met-abs">...</td>
+                    <td id="res-met-perc">...</td>
+                </tr>
+                <tr>
+                    <th>Not Met</th>
+                    <td id="res-not-met-abs">...</td>
+                    <td id="res-not-met-perc">...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <div id="results-footer" style="text-align: center; max-width: 600px; margin: 0 auto;">
+        <button type="button" id="listPermutationsBtn" onclick="listWinningPermutations()" style="margin-top: 10px; width: 50%;" disabled>List Winning Permutations</button>
+    </div>
+    <div id="permutation-list-container" style="display: none; max-width: 600px; margin: 10px auto;">
+        <h3 style="text-align: center;">Winning Permutations</h3>
+        <p id="permutation-warning" style="text-align: center; font-size: 0.9em;"></p>
+        <pre id="permutation-list" style="background-color: light-dark(#eee, #222); border: 1px solid #ccc; padding: 10px; border-radius: 4px; max-height: 400px; overflow: auto;"></pre>
+    </div>
+    
+    <div id="footer">
+        <p>
+            <a href="https://github.com/yzemaze/carcassonne-probabilities">Examples, feedback, source code etc.</a>
+            <span>|</span>
+            <a href="./carcassonne-draw-probabilities.html">Draw Simulator</a>
+        </p>
+    </div>
+
+    <script>
+        let storedWinningPermutations = [];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            addCondition('1');
+            addCondition('2');
+            addCondition('3');
+            // Call handleOperatorChange for initial state check
+            document.getElementById('op1').dispatchEvent(new Event('change'));
+            document.getElementById('op2').dispatchEvent(new Event('change'));
+        });
+
+        function handleOperatorChange(selectElement) {
+            const op1Select = document.getElementById('op1');
+            const op2Select = document.getElementById('op2');
+
+            // Function to disable/enable 'BEFORE' option in a select
+            const toggleBeforeOption = (select, disable) => {
+                Array.from(select.options).forEach(option => {
+                    if (option.value === 'BEFORE') {
+                        option.disabled = disable;
+                        if (disable && select.value === 'BEFORE') {
+                            select.value = 'AND'; // Fallback if BEFORE is currently selected and needs disabling
+                        }
+                    }
+                });
+            };
+
+            if (op1Select.value === 'BEFORE') {
+                toggleBeforeOption(op2Select, true);
+            } else if (op2Select.value === 'BEFORE') {
+                toggleBeforeOption(op1Select, true);
+            } else { // No BEFORE selected, enable BEFORE for both
+                toggleBeforeOption(op1Select, false);
+                toggleBeforeOption(op2Select, false);
+            }
+        }
+        
+        function doLogicalOp(valA, valB, op) {
+            if (op === 'AND') return valA && valB;
+            if (op === 'OR') return valA || valB;
+            if (op === 'XOR') return (valA && !valB) || (!valA && valB);
+            if (op === 'NOR') return !(valA || valB);
+            if (op === 'NAND') return !(valA && valB);
+            return false;
+        }
+
+        // --- UI Functions ---
+        function validateTiles(input) {
+            let value = parseInt(input.value);
+            if (isNaN(value) || value < 2) {
+                input.value = 2;
+            } else if (value > 10) {
+                input.value = 10;
+            }
+        }
+
+        function addCondition(groupId) {
+            const container = document.getElementById(`group${groupId}-conditions`);
+            const lineIndex = container.children.length;
+            const line = document.createElement('div');
+            line.className = 'condition-line';
+            const playerASelected = (groupId === '2') ? '' : 'selected'; // Default Player for Set 2 is B
+            const playerBSelected = (groupId === '2') ? 'selected' : '';
+            line.innerHTML = `
+                <select class="op-selector" style="display: ${lineIndex === 0 ? 'none' : 'block'};">
+                    <option>AND</option><option>OR</option><option>XOR</option><option>NOR</option><option>NAND</option>
+                </select>
+                <select class="player">
+                    <option value="A" ${playerASelected}>A</option>
+                    <option value="B" ${playerBSelected}>B</option>
+                </select>
+                draws
+                <select class="quantifier"><option value="any">any of</option><option value="all">all of</option><option value="none">none of</option></select>
+                <input type="text" class="tiles" placeholder="e.g. a, b">
+                <button type="button" class="action-btn remove-btn" onclick="removeCondition(this.parentElement)">-</button>
+            `;
+            container.appendChild(line);
+        }
+
+        function removeCondition(lineElement) {
+            const container = lineElement.parentElement;
+            lineElement.remove();
+            const remainingLines = Array.from(container.children);
+            remainingLines.forEach((line, index) => {
+                const opSelector = line.querySelector('.op-selector');
+                if (opSelector) {
+                    opSelector.style.display = (index === 0) ? 'none' : 'block';
+                }
+            });
+        }
+
+        // --- Parsing and Evaluation ---
+        function parseConditions(groupId) {
+            const container = document.getElementById(`group${groupId}-conditions`);
+            if (!container) return { conditions: [], operators: [] };
+            const lines = Array.from(container.children);
+            const conditions = [];
+            const operators = [];
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i];
+                if (i > 0) operators.push(line.querySelector('.op-selector').value);
+                conditions.push({
+                    player: line.querySelector('.player').value,
+                    quantifier: line.querySelector('.quantifier').value,
+                    tiles: line.querySelector('.tiles').value.split(',').map(t => t.trim()).filter(Boolean)
+                });
+            }
+            return { conditions, operators };
+        }
+
+        function evaluateGroup(group, drawsA, drawsB) {
+            if (group.conditions.length === 0 || group.conditions.every(c => c.tiles.length === 0)) return true;
+            const check = (cond) => {
+                const drawnTiles = cond.player === 'A' ? drawsA : drawsB;
+                if (cond.tiles.length === 0) return false;
+                if (cond.quantifier === 'any') return cond.tiles.some(t => drawnTiles.includes(t));
+                if (cond.quantifier === 'all') return cond.tiles.every(t => drawnTiles.includes(t));
+                if (cond.quantifier === 'none') return cond.tiles.every(t => !drawnTiles.includes(t));
+                return false;
+            };
+            let result = check(group.conditions[0]);
+            for (let i = 0; i < group.operators.length; i++) {
+                const nextResult = check(group.conditions[i + 1]);
+                const op = group.operators[i];
+                result = doLogicalOp(result, nextResult, op);
+            }
+            return result;
+        }
+
+        // --- Permutation Generation ---
+        function* permute(arr) {
+            const length = arr.length;
+            const c = new Array(length).fill(0);
+            let i = 1;
+            yield arr.slice();
+            while (i < length) {
+                if (c[i] < i) {
+                    const k = (i % 2) ? c[i] : 0;
+                    [arr[i], arr[k]] = [arr[k], arr[i]];
+                    c[i]++;
+                    i = 1;
+                    yield arr.slice();
+                } else {
+                    c[i] = 0;
+                    i++;
+                }
+            }
+        }
+        
+        // --- Main Calculation ---
+        async function runCalculation() {
+            validateTiles(document.getElementById('totalTiles'));
+            const totalTiles = parseInt(document.getElementById('totalTiles').value);
+            
+            const group1 = parseConditions('1');
+            const group2 = parseConditions('2');
+            const group3 = parseConditions('3');
+            const op1 = document.getElementById('op1').value;
+            const op2 = document.getElementById('op2').value;
+            const evalOrder = document.getElementById('evalOrder').value;
+
+            const deck = [...document.getElementById('specificTiles').value.split(',').map(t => t.trim()).filter(Boolean), 
+                          ...Array(totalTiles - document.getElementById('specificTiles').value.split(',').map(t => t.trim()).filter(Boolean).length).fill('placeholder')];
+
+            const progress = document.getElementById('progress');
+            progress.style.display = 'block';
+            ['res-perms-abs', 'res-met-abs', 'res-met-perc', 'res-not-met-abs', 'res-not-met-perc'].forEach(id => document.getElementById(id).textContent = '...');
+            storedWinningPermutations = [];
+            document.getElementById('listPermutationsBtn').disabled = true;
+            document.getElementById('permutation-list-container').style.display = 'none';
+
+            let successfulPerms = 0;
+            let processedPermutations = 0;
+            const totalPermutations = factorial(deck.length);
+            const permutationGenerator = permute(deck);
+
+            function processChunk() {
+                const chunkSize = Math.min(10000, totalPermutations - processedPermutations);
+                for (let i = 0; i < chunkSize; i++) {
+                    const perm = permutationGenerator.next().value;
+                    if (!perm) { finalize(); return; }
+                    processedPermutations++;
+                    
+                    let isSuccess = false;
+
+                    // --- Evaluation Dispatcher ---
+                    let res1_val, res2_val;
+
+                    if (op1 !== 'BEFORE' && op2 !== 'BEFORE') {
+                        const g1Met = evalState(perm, group1);
+                        const g2Met = evalState(perm, group2);
+                        const g3Met = evalState(perm, group3);
+                        if (evalOrder === 'ltr') {
+                            res1_val = doLogicalOp(g1Met, g2Met, op1);
+                            isSuccess = doLogicalOp(res1_val, g3Met, op2);
+                        } else {
+                            res2_val = doLogicalOp(g2Met, g3Met, op2);
+                            isSuccess = doLogicalOp(g1Met, res2_val, op1);
+                        }
+                    } 
+                    else if (op1 === 'BEFORE') {
+                        const raceWins = evalRace(perm, group1, group2);
+                        const g3Met = evalState(perm, group3);
+                        isSuccess = doLogicalOp(raceWins, g3Met, op2);
+                    } 
+                    else if (op2 === 'BEFORE') {
+                        const raceWins = evalRace(perm, group2, group3);
+                        const g1Met = evalState(perm, group1);
+                        isSuccess = doLogicalOp(g1Met, raceWins, op1);
+                    }
+
+                    if (isSuccess) {
+                        successfulPerms++;
+                        if (storedWinningPermutations.length < 10000) storedWinningPermutations.push(perm.slice());
+                    }
+                }
+
+                progress.value = (processedPermutations / totalPermutations) * 100;
+                if (processedPermutations < totalPermutations) setTimeout(processChunk, 0); else finalize();
+            }
+
+            function finalize() {
+                const probSuccess = totalPermutations > 0 ? successfulPerms / totalPermutations : 0;
+                document.getElementById('res-perms-abs').textContent = totalPermutations;
+                document.getElementById('res-met-abs').textContent = successfulPerms;
+                document.getElementById('res-not-met-abs').textContent = totalPermutations - successfulPerms;
+                document.getElementById('res-met-perc').textContent = `${(probSuccess * 100).toFixed(2)}%`;
+                document.getElementById('res-not-met-perc').textContent = `${((1 - probSuccess) * 100).toFixed(2)}%`;
+                progress.style.display = 'none';
+                if (storedWinningPermutations.length > 0) document.getElementById('listPermutationsBtn').disabled = false;
+            }
+            
+            processChunk();
+        }
+
+        // --- Evaluation Helpers ---
+        function factorial(n) { let r=1; for(let i=2;i<=n;i++) r*=i; return r; }
+
+        function evalState(perm, group) {
+            const drawsA = [], drawsB = [];
+            for(let t=0; t<perm.length; t++) { (t % 2 === 0) ? drawsA.push(perm[t]) : drawsB.push(perm[t]); }
+            return evaluateGroup(group, drawsA, drawsB);
+        }
+
+        function evalRace(perm, successGroup, failureGroup) {
+            const drawsA = [], drawsB = [];
+            for (let turn = 0; turn < perm.length; turn++) {
+                (turn % 2 === 0) ? drawsA.push(perm[turn]) : drawsB.push(perm[turn]);
+                if (evaluateGroup(successGroup, drawsA, drawsB)) return true;
+                if (evaluateGroup(failureGroup, drawsA, drawsB)) return false;
+            }
+            return false;
+        }
+
+        function listWinningPermutations() {
+            const container = document.getElementById('permutation-list-container');
+            if (container.style.display === 'block') { container.style.display = 'none'; return; }
+            
+            const totalSuccesses = parseInt(document.getElementById('res-met-abs').textContent, 10) || 0;
+            if (storedWinningPermutations.length === 0) { alert("No winning permutations were stored."); return; }
+
+            let warning = '';
+            if (storedWinningPermutations.length < totalSuccesses) {
+                warning = `(Displaying first ${storedWinningPermutations.length} of ${totalSuccesses} winning permutations. Full list not stored due to memory limits.)`;
+            }
+
+            storedWinningPermutations.sort((permA, permB) => {
+                for (let i = 0; i < permA.length; i++) {
+                    if (permA[i] < permB[i]) return -1;
+                    if (permA[i] > permB[i]) return 1;
+                }
+                return 0;
+            });
+
+            document.getElementById('permutation-warning').textContent = warning;
+            document.getElementById('permutation-list').textContent = storedWinningPermutations.map(p => p.join(', ')).join('\n');
+            container.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
