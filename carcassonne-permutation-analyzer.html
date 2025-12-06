@@ -48,10 +48,6 @@
             max-width: 400px;
         }
 
-        #analyzerForm {
-            grid-template-columns: 3fr 1fr;
-        }
-
         #results {
             grid-template-columns: 1fr;
         }
@@ -82,7 +78,7 @@
 				.settings {
 						display: grid;
 						grid-column: span 2;
-						grid-template-columns: 3fr 1fr;
+						grid-template-columns: 2fr 1fr;
 						gap: 10px;
 				}
 
@@ -226,22 +222,25 @@
     <h1>Permutation Analyzer</h1>
 
     <form id="analyzerForm" class="box-container" onsubmit="return false;">
-        <label for="totalTiles">Total Tiles:</label>
-        <input type="number" id="totalTiles" value="8" min="2" max="10" onchange="validateTiles(this)">
-        <label for="specificTiles">Specific Tiles:</label>
-        <input type="text" id="specificTiles" placeholder="e.g. a, b">
-
-        <label for="method">Method:</label>
-        <select id="method" onchange="toggleCalcMethod()">
-            <option value="exact">Calculation</option>
-            <option value="simulation">Simulation</option>
-        </select>
-        
+				<div class="settings">
+						<label for="totalTiles">Total Tiles:</label>
+						<input type="number" id="totalTiles" value="8" min="2" max="10" onchange="validateTiles(this)">
+        </div>
+				<div class="settings">
+					<label for="specificTiles">Specific Tiles:</label>
+					<input type="text" id="specificTiles" placeholder="e.g. a, b">
+				</div>
+				<div class="settings">
+						<label for="method">Method:</label>
+						<select id="method" onchange="toggleCalcMethod()">
+							<option value="exact">Calculation</option>
+							<option value="simulation">Simulation</option>
+						</select>
+				</div>
         <div id="simulation-options" class="settings">
             <label for="iterations">Iterations:</label>
             <input type="number" id="iterations" value="100000" min="1000">
         </div>
-
         <div class="settings">
             <label for="evalOrder">Evaluation Order:</label>
             <select id="evalOrder">
