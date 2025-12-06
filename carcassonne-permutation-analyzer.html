@@ -210,7 +210,6 @@
             <input type="number" id="iterations" value="100000" min="1000">
         </div>
 
-        <div id="exact-warning" style="font-size: 0.9em; color: #ff9800; grid-column: span 2; display: none;">Warning: Exact calculation is slow for >10 tiles!</div>
         <div class="settings">
             <label for="evalOrder">Evaluation Order:</label>
             <select id="evalOrder">
@@ -319,9 +318,6 @@
             const totalTiles = parseInt(totalTilesInput.value);
             const isExact = !isSimulation;
             totalTilesInput.max = isExact ? 10 : 100; // Update max attribute dynamically
-
-            const showWarning = isExact && totalTiles > 10;
-            document.getElementById('exact-warning').style.display = showWarning ? 'block' : 'none';
 
             // Update button text
             const calculateButton = document.getElementById('calculateButton');
