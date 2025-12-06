@@ -416,21 +416,26 @@
             const operators = [];
             for (let i = 0; i < lines.length; i++) {
                 const line = lines[i];
-                if (i > 0) operators.push(line.querySelector('.op-selector').value);
-                conditions.push({
-                    player: line.querySelector('.player').value,
-                    quantifier: line.querySelector('.quantifier').value,
-                    tiles: line.querySelector('.tiles').value.split(',').map(t => t.trim()).filter(Boolean)
-                });
+                const tiles = line.querySelector('.tiles').value.split(',').map(t => t.trim()).filter(Boolean);
+                
+                // Only add condition if tiles are specified
+                if (tiles.length > 0) {
+                    if (i > 0) operators.push(line.querySelector('.op-selector').value);
+                    conditions.push({
+                        player: line.querySelector('.player').value,
+                        quantifier: line.querySelector('.quantifier').value,
+                        tiles: tiles
+                    });
+                }
             }
             return { conditions, operators };
         }
 
         function evaluateGroup(group, drawsA, drawsB) {
-            if (group.conditions.length === 0 || group.conditions.every(c => c.tiles.length === 0)) return true;
+            if (group.conditions.length === 0) return true; // Vacuously true if no conditions to evaluate
             const check = (cond) => {
                 const drawnTiles = cond.player === 'A' ? drawsA : drawsB;
-                if (cond.tiles.length === 0) return false;
+                // No need to check cond.tiles.length === 0 here, as empty tile conditions are filtered in parseConditions
                 if (cond.quantifier === 'any') return cond.tiles.some(t => drawnTiles.includes(t));
                 if (cond.quantifier === 'all') return cond.tiles.every(t => drawnTiles.includes(t));
                 if (cond.quantifier === 'none') return cond.tiles.every(t => !drawnTiles.includes(t));
@@ -643,7 +648,8 @@
                     drawsB.push(perm[turn]);
                 }
                 if (evaluateGroup(successGroup, drawsA, drawsB)) return true;
-                if (evaluateGroup(failureGroup, drawsA, drawsB)) return false;
+                // Only consider failureGroup if it actually has conditions
+                if (failureGroup.conditions.length > 0 && evaluateGroup(failureGroup, drawsA, drawsB)) return false;
             }
             return false;
         }
