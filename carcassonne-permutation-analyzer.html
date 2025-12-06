@@ -59,11 +59,7 @@
             border-radius: 4px;
             font-size: 1em;
             padding: 2px 5px;
-            min-width: 30px;
-        }
-
-        input.tiles {
-            justify-self: start;
+						min-width: 30px;
         }
 
         #totalTiles,
@@ -524,7 +520,7 @@
             const evalOrder = document.getElementById('evalOrder').value;
 
             const deck = [...document.getElementById('specificTiles').value.split(',').map(t => t.trim()).filter(Boolean), 
-                          ...Array(totalTiles - document.getElementById('specificTiles').value.split(',').map(t => t.trim()).filter(Boolean).length).fill('placeholder')];
+                          ...Array(totalTiles - document.getElementById('specificTiles').value.split(',').map(t => t.trim()).filter(Boolean).length).fill('_')];
 
             const progress = document.getElementById('progress');
             progress.style.display = 'block';
@@ -571,7 +567,7 @@
             const evalOrder = document.getElementById('evalOrder').value;
 
             const deck = [...document.getElementById('specificTiles').value.split(',').map(t => t.trim()).filter(Boolean),
-                          ...Array(totalTiles - document.getElementById('specificTiles').value.split(',').map(t => t.trim()).filter(Boolean).length).fill('placeholder')];
+                          ...Array(totalTiles - document.getElementById('specificTiles').value.split(',').map(t => t.trim()).filter(Boolean).length).fill('_')];
 
             const progress = document.getElementById('progress');
             progress.style.display = 'block';
@@ -684,7 +680,6 @@
                     drawsB.push(perm[turn]);
                 }
                 if (evaluateGroup(successGroup, drawsA, drawsB)) return true;
-                // Only consider failureGroup if it actually has conditions
                 if (failureGroup.conditions.length > 0 && evaluateGroup(failureGroup, drawsA, drawsB)) return false;
             }
             return false;
