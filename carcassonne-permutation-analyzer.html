@@ -28,13 +28,15 @@
             text-align: center;
             margin: 15px 0 10px 0;
         }
+				h3#permutation-warning {
+					margin-top: 0;
+				}
 
         label {
             align-self: center;
         }
 
-        #analyzerForm,
-        #results {
+        .box-container{
             border-radius: 8px;
             background-color: light-dark(#fff, #333);
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
@@ -64,17 +66,18 @@
             min-width: 30px;
         }
 
-				input.tiles {
-						justify-self: start;
-				}
-
-				#totalTiles, #iterations {
-						text-align: right;
-				}
-
-        .full-width {
-            grid-column: span 2;
+        input.tiles {
+            justify-self: start;
         }
+
+        #totalTiles,
+				#iterations {
+            text-align: right;
+        }
+				
+				.full-width {
+						grid-column: span 2;
+				}
 
 				.settings {
 						display: grid;
@@ -116,7 +119,7 @@
 
         .condition-line .op-selector {
             grid-column: 1 / -1;
-						justify-self: start;
+            justify-self: start;
         }
 
         .action-btn {
@@ -146,12 +149,12 @@
         }
 
         button {
-						padding: 5px;
-						background-color: light-dark(#4CAF50, #005B04);
-						color: light-dark(white, #ddd);
-						border: none;
-						border-radius: 4px;
-						cursor: pointer;
+            padding: 5px;
+            background-color: light-dark(#4CAF50, #005B04);
+            color: light-dark(white, #ddd);
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
         }
 
 				button.full-width {
@@ -182,6 +185,36 @@
             text-align: left;
         }
 
+        #simulation-options {
+            display: none;
+        }
+
+        #results-footer {
+            text-align: center;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        #listPermutationsBtn {
+            margin-top: 10px;
+            width: 50%;
+        }
+
+        #permutation-list-container {
+            display: none;
+						margin-top: 10px;
+        }
+
+        #permutation-list {
+            background-color: light-dark(#eee, #222);
+            border: 1px solid #ccc;
+            padding: 2px 5px;
+            border-radius: 4px;
+            max-height: 400px;
+            overflow: auto;
+						font-size: 0.8rem;
+        }
+
         #footer p {
             display: flex;
             justify-content: center;
@@ -192,7 +225,7 @@
 <body>
     <h1>Permutation Analyzer</h1>
 
-    <form id="analyzerForm" onsubmit="return false;">
+    <form id="analyzerForm" class="box-container" onsubmit="return false;">
         <label for="totalTiles">Total Tiles:</label>
         <input type="number" id="totalTiles" value="8" min="2" max="10" onchange="validateTiles(this)">
         <label for="specificTiles">Specific Tiles:</label>
@@ -204,7 +237,7 @@
             <option value="simulation">Simulation</option>
         </select>
         
-        <div id="simulation-options" class="settings" style="display: none;">
+        <div id="simulation-options" class="settings">
             <label for="iterations">Iterations:</label>
             <input type="number" id="iterations" value="100000" min="1000">
         </div>
@@ -249,7 +282,7 @@
     </form>
 
     <h2 class="result-header">Results</h2>
-    <div id="results">
+    <div id="results" class="box-container">
         <table>
             <thead>
                 <tr>
@@ -277,13 +310,12 @@
             </tbody>
         </table>
     </div>
-    <div id="results-footer" style="text-align: center; max-width: 600px; margin: 0 auto;">
-        <button type="button" id="listPermutationsBtn" onclick="listWinningPermutations()" style="margin-top: 10px; width: 50%;" disabled>List Winning Permutations</button>
+    <div id="results-footer">
+        <button type="button" id="listPermutationsBtn" onclick="listWinningPermutations()" disabled>List Winning Permutations</button>
     </div>
-    <div id="permutation-list-container" style="display: none; max-width: 600px; margin: 10px auto;">
-        <h3 style="text-align: center;">Winning Permutations</h3>
-        <p id="permutation-warning" style="text-align: center; font-size: 0.9em;"></p>
-        <pre id="permutation-list" style="background-color: light-dark(#eee, #222); border: 1px solid #ccc; padding: 10px; border-radius: 4px; max-height: 400px; overflow: auto;"></pre>
+    <div id="permutation-list-container" class="box-container">
+        <h3 id="permutation-warning"></h3>
+        <pre id="permutation-list"></pre>
     </div>
     
     <div id="footer">
@@ -613,7 +645,7 @@
                 const raceWins = evalRace(perm, group1, group2);
                 const g3Met = evalState(perm, group3);
                 isSuccess = doLogicalOp(raceWins, g3Met, op2);
-            } 
+            }
             else if (op2 === 'BEFORE') {
                 const raceWins = evalRace(perm, group2, group3);
                 const g1Met = evalState(perm, group1);
@@ -668,7 +700,7 @@
 
             let warning = '';
             if (storedWinningPermutations.length < totalSuccesses) {
-                warning = `(Displaying first ${storedWinningPermutations.length} of ${totalSuccesses} winning permutations. Full list not stored due to memory limits.)`;
+                warning = `${storedWinningPermutations.length} unique permutations`;
             }
 
             storedWinningPermutations.sort((permA, permB) => {
