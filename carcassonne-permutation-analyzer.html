@@ -75,7 +75,6 @@
 						display: grid;
 						grid-column: span 2;
 						grid-template-columns: 2fr 1fr;
-						gap: 10px;
 				}
 
         .condition-group {
@@ -86,14 +85,14 @@
         }
 
         .group-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
+            display: grid;
+						grid-template-columns: 1fr auto;
+            margin-bottom: 5px;
         }
 
         .group-header h3 {
             margin: 0;
+						text-align: left;
         }
 
         .set-operator-container {
@@ -103,7 +102,7 @@
 
         .condition-line {
             display: grid;
-            grid-template-columns: auto auto auto 1fr auto;
+            grid-template-columns: repeat(5, auto) 1fr auto;
             gap: 5px;
             align-items: center;
             margin-bottom: 5px;
@@ -113,6 +112,10 @@
             grid-column: 1 / -1;
             justify-self: start;
         }
+
+				.quantifier-n {
+					max-width: 2em;
+				}
 
         .action-btn {
             border: none;
@@ -154,7 +157,7 @@
 				}
 
         button:hover {
-            background-color: light-dark(#45a049, #0f6913);
+						filter: brightness(120%);
         }
 
         progress {
@@ -419,7 +422,13 @@
                     <option value="B" ${playerBSelected}>B</option>
                 </select>
                 draws
-                <select class="quantifier"><option value="any">any of</option><option value="all">all of</option><option value="none">none of</option></select>
+                <select class="quantifier">
+                    <option value="at-least">at least</option>
+                    <option value="at-most">at most</option>
+                    <option value="exactly">exactly</option>
+                </select>
+                <input type="number" class="quantifier-n" value="1" min="0">
+                <span class="quantifier-of">of</span>
                 <input type="text" class="tiles" placeholder="e.g. a, b">
                 <button type="button" class="action-btn remove-btn" onclick="removeCondition(this.parentElement)">-</button>
             `;
@@ -452,10 +461,13 @@
                 // Only add condition if tiles are specified
                 if (tiles.length > 0) {
                     if (i > 0) operators.push(line.querySelector('.op-selector').value);
+                    const quantifier = line.querySelector('.quantifier').value;
+                    const n = parseInt(line.querySelector('.quantifier-n').value);
                     conditions.push({
                         player: line.querySelector('.player').value,
-                        quantifier: line.querySelector('.quantifier').value,
-                        tiles: tiles
+                        quantifier: quantifier,
+                        tiles: tiles,
+                        n: n
                     });
                 }
             }
@@ -466,10 +478,11 @@
             if (group.conditions.length === 0) return true; // Vacuously true if no conditions to evaluate
             const check = (cond) => {
                 const drawnTiles = cond.player === 'A' ? drawsA : drawsB;
+                const intersection = cond.tiles.filter(t => drawnTiles.includes(t));
                 // No need to check cond.tiles.length === 0 here, as empty tile conditions are filtered in parseConditions
-                if (cond.quantifier === 'any') return cond.tiles.some(t => drawnTiles.includes(t));
-                if (cond.quantifier === 'all') return cond.tiles.every(t => drawnTiles.includes(t));
-                if (cond.quantifier === 'none') return cond.tiles.every(t => !drawnTiles.includes(t));
+                if (cond.quantifier === 'at-least') return intersection.length >= cond.n;
+                if (cond.quantifier === 'at-most') return intersection.length <= cond.n;
+                if (cond.quantifier === 'exactly') return intersection.length === cond.n;
                 return false;
             };
             let result = check(group.conditions[0]);
