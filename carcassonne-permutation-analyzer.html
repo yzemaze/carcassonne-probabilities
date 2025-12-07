@@ -288,7 +288,7 @@
             </thead>
             <tbody>
                 <tr>
-                    <th>Permutations</th>
+                    <th id="results-header-permutations">Permutations</th>
                     <td id="res-perms-abs">...</td>
                     <td>100.00%</td>
                 </tr>
@@ -348,6 +348,10 @@
             // Update button text
             const calculateButton = document.getElementById('calculateButton');
             calculateButton.textContent = isSimulation ? 'Run Simulation' : 'Calculate Probabilities';
+
+            // Update table header
+            const tableHeader = document.getElementById('results-header-permutations');
+            tableHeader.textContent = isSimulation ? 'Simulations' : 'Permutations';
         }
 
 
@@ -610,7 +614,7 @@
 
         function finalize(total, successful, isSimulation) {
             const probSuccess = total > 0 ? successful / total : 0;
-            document.getElementById('res-perms-abs').textContent = isSimulation ? `${total} (sim.)` : total;
+            document.getElementById('res-perms-abs').textContent = total;
             document.getElementById('res-met-abs').textContent = successful;
             document.getElementById('res-not-met-abs').textContent = total - successful;
             document.getElementById('res-met-perc').textContent = `${(probSuccess * 100).toFixed(2)}%`;
