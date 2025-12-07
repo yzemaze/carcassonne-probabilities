@@ -8,16 +8,19 @@ Probabilites of tile draws in Carcassonne
 [LibreOffice Calc sheet](draw-k-out-of-K.ods) featuring draw probabilities of exactly/at least k out of K desired tiles still present in N total tiles remaining. [cf. [ hypergeometric distribution](https://en.wikipedia.org/wiki/Hypergeometric_distribution)]
 These are theoretical values. If you’d run the script below with enough iterations results should be similar.
 
-[python script](draw-a-before-b.py) simulating (2p Carcassonne) tile draws and printing corresponding stats. It calculates probabilities of drawing 1 out of A tiles before the other player does draw either 1 out of B different tiles or one of the players drawing 1 of C common tiles.
+[Python script](draw-a-before-b.py) simulating (2p Carcassonne) tile draws and printing corresponding stats. It calculates probabilities of drawing 1 out of A tiles before the other player does draw either 1 out of B different tiles or one of the players drawing 1 of C common tiles.
 Additionally it prints a table of tile distribution probabilities according to the simulation. 
 
 [html page](carcassonne-draw-probabilities.html) that does the same as the python script. It’s self-contained (includes JS and CSS), so it could be used locally or [online](https://yzemaze.de/bga/carcassonne-draw-probabilities.html).
+
+[Permutation analyzer](carcassonne-permutation-analyzer.html) ([online](https://yzemaze.de/bga/carcassonne-permutation-analyzer.html)) calculates the probability of specific tile distribution conditions being met across all possible tile permutations or simulations. You can define complex conditions for specific tiles remaining with up to 3 sets of (multiple) quantitative rules (at least/most/exactly N of certain tiles/tile groups) combined with logical operators. Only one combination can feature the special operator ```before```, but many roads lead to Rome. Due to limitations in some specific cases you may also need to select the correct evaluation order.
+For <= 10 tiles an exact permutation analysis is possible, but might still be slower than a simulation. For > 10 tiles only simulations are available.
 
 ## Please note
 Player A will always be the one drawing first.
 Don’t forget to add the tile already in your opponent’s hand to the remaining tiles count given by BGA’s interface.
 
-## Examples
+## Draw Simulator Examples
 Description: values of tiles remaining, A, B, C
 
 Possible distributions of monasteries: 71, 0, 0, 6
@@ -43,6 +46,19 @@ B is the 2nd player and according to BGA’s interface there are 6 tiles remaini
 2. B should draw the vanilla cap before A gets the dagger in 25% of the cases.
 3. In 30% of simulations neither one got one of the specified tiles.
 4. In case of success A would have to wait 0.78 moves on average. (0 = their next move, 1 = their move after that etc. )
+
+## Permutation Analyzer Example
+![screenshot-ex5](/img/ex5-permutation-analyzer.png?raw=true)
+1. 9 tiles remaining
+2. straight, monastery, vanilla, cow, dagger (and 4 irrelvant ones)
+3. A needs to draw either the straight to execute a block
+4. before
+5. B enters a field with monastery or vanilla
+6. or
+7. A needs to get the vanilla or dagger
+8. and
+9. a cow to complete a city.
+10. A will succeed in roughly 64.34% of cases. (Switching the method to ```Calculation``` would result in 64.29%.)
 
 ## Feedback, problems, ideas etc.
 Please start a [discussion](https://github.com/yzemaze/carcassonne-probabilities/discussions) or contact me on BGA.
