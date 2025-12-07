@@ -3,6 +3,7 @@ Probabilites of tile draws in Carcassonne
 
 ## tl;dr
 [online script to calculate probabilities of specific draws and distributions](https://yzemaze.de/bga/carcassonne-draw-probabilities.html)
+[online script to calculate probabilities of more complex sets of conditions](https://yzemaze.de/bga/carcassonne-permutation-analyzer.html)
 
 ## What’s here?
 [LibreOffice Calc sheet](draw-k-out-of-K.ods) featuring draw probabilities of exactly/at least k out of K desired tiles still present in N total tiles remaining. [cf. [ hypergeometric distribution](https://en.wikipedia.org/wiki/Hypergeometric_distribution)]
@@ -13,7 +14,7 @@ Additionally it prints a table of tile distribution probabilities according to t
 
 [html page](carcassonne-draw-probabilities.html) that does the same as the python script. It’s self-contained (includes JS and CSS), so it could be used locally or [online](https://yzemaze.de/bga/carcassonne-draw-probabilities.html).
 
-[Permutation analyzer](carcassonne-permutation-analyzer.html) ([online](https://yzemaze.de/bga/carcassonne-permutation-analyzer.html)) calculates the probability of specific tile distribution conditions being met across all possible tile permutations or simulations. You can define complex conditions for specific tiles remaining with up to 3 sets of (multiple) quantitative rules (at least/most/exactly N of certain tiles/tile groups) combined with logical operators. Only one combination can feature the special operator ```before```, but many roads lead to Rome. Due to limitations in some specific cases you may also need to select the correct evaluation order.
+[Permutation analyzer](carcassonne-permutation-analyzer.html) ([online](https://yzemaze.de/bga/carcassonne-permutation-analyzer.html)) calculates the probability of specific tile distribution conditions being met across all possible tile permutations. You can define complex conditions for specific tiles remaining with up to 3 sets of (multiple) quantitative rules (at least/most/exactly N of certain tiles/tile groups) combined with logical operators. Only one combination can feature the special operator ```before```, but many roads lead to Rome. Due to limitations in some specific cases you may also need to select the correct evaluation order.
 For <= 10 tiles an exact permutation analysis is possible, but might still be slower than a simulation. For > 10 tiles only simulations are available.
 
 ## Please note
@@ -61,4 +62,4 @@ B is the 2nd player and according to BGA’s interface there are 6 tiles remaini
 10. A will succeed in roughly 64.34% of cases. (Switching the method to ```Calculation``` would result in 64.29%.)
 
 ## Feedback, problems, ideas etc.
-Please start a [discussion](https://github.com/yzemaze/carcassonne-probabilities/discussions) or contact me on BGA.
+Please start a [discussion](https://github.com/yzemaze/carcassonne-probabilities/discussions) or contact me on BGA or Discord.
