@@ -59,7 +59,7 @@ B is the 2nd player and according to BGA’s interface there are 6 tiles remaini
 7. A needs to get the vanilla or dagger
 8. and
 9. a cow to complete a city.
-10. A will succeed in roughly 64.34% of cases. (Switching the method to ```Calculation``` would result in 64.29%.)
+10. A will succeed in roughly 56.34% of cases. (Switching the method to ```Calculation``` would result in 56.35%.)
 
 ## Feedback, problems, ideas etc.
 Please start a [discussion](https://github.com/yzemaze/carcassonne-probabilities/discussions) or contact me on BGA or Discord.
