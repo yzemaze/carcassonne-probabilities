@@ -702,22 +702,45 @@
         function evalRace(perm, successGroup, failureGroup) {
             const hasSuccessCondition = successGroup.conditions.length > 0;
             const hasFailureCondition = failureGroup.conditions.length > 0;
+            
+            if (!hasSuccessCondition && !hasFailureCondition) return true; // empty BEFORE empty is vacuously true.
+
+            // If only failure is defined, success means it never happens.
+            if (!hasSuccessCondition) {
+                const drawsA = [], drawsB = [];
+                for (let turn = 0; turn < perm.length; turn++) {
+                    if (turn % 2 === 0) drawsA.push(perm[turn]); else drawsB.push(perm[turn]);
+                    if (evaluateGroup(failureGroup, drawsA, drawsB)) return false;
+                }
+                return true; // Failure was avoided
+            }
+            
+            // If we have a success condition, we find the first success and failure turns.
+            let successTurn = -1;
+            let failureTurn = -1;
 
             const drawsA = [], drawsB = [];
             for (let turn = 0; turn < perm.length; turn++) {
-                if (turn % 2 === 0) {
-                    drawsA.push(perm[turn]);
-                } else {
-                    drawsB.push(perm[turn]);
-                }
-                if (hasFailureCondition && evaluateGroup(failureGroup, drawsA, drawsB)) return false;
-                if (hasSuccessCondition && evaluateGroup(successGroup, drawsA, drawsB)) return true;
+                 if (turn % 2 === 0) drawsA.push(perm[turn]); else drawsB.push(perm[turn]);
+                 if (successTurn === -1 && evaluateGroup(successGroup, drawsA, drawsB)) {
+                     successTurn = turn;
+                 }
+                 if (failureTurn === -1 && hasFailureCondition && evaluateGroup(failureGroup, drawsA, drawsB)) {
+                     failureTurn = turn;
+                 }
+                 // Optimization: if both found, we can stop searching if we only care about which is first.
+                 // But let's find the very first of each for clarity.
             }
-            // Loop finished.
-            // If we are here, it means failure condition was never met.
-            // If there was a success condition, it means it was not met, so it's a failure.
-            // If there was NO success condition, then not-failing is a success.
-            return !hasSuccessCondition;
+
+            if (successTurn === -1) return false; // Success condition must be met.
+            
+            // If failure condition is defined but never met, the race is invalid/false.
+            if (hasFailureCondition && failureTurn === -1) return false;
+            
+            // If no failure condition, success is enough.
+            if (!hasFailureCondition) return true;
+            
+            return successTurn < failureTurn;
         }
 
         function listWinningPermutations() {
