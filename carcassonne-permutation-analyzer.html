@@ -463,7 +463,7 @@
             const operators = [];
             for (let i = 0; i < lines.length; i++) {
                 const line = lines[i];
-                const tiles = line.querySelector('.tiles').value.split(',').map(t => t.trim()).filter(Boolean);
+                const tiles = [...new Set(line.querySelector('.tiles').value.split(',').map(t => t.trim()).filter(Boolean))];
                 
                 // Only add condition if tiles are specified
                 if (tiles.length > 0) {
@@ -484,7 +484,7 @@
         function evaluateGroup(group, drawsA, drawsB) {
             const check = (cond) => {
                 const drawnTiles = cond.player === 'A' ? drawsA : drawsB;
-                const intersection = cond.tiles.filter(t => drawnTiles.includes(t));
+                const intersection = drawnTiles.filter(t => cond.tiles.includes(t));
                 // No need to check cond.tiles.length === 0 here, as empty tile conditions are filtered in parseConditions
                 if (cond.quantifier === 'at-least') return intersection.length >= cond.n;
                 if (cond.quantifier === 'at-most') return intersection.length <= cond.n;
@@ -700,6 +700,9 @@
         }
 
         function evalRace(perm, successGroup, failureGroup) {
+            const hasSuccessCondition = successGroup.conditions.length > 0;
+            const hasFailureCondition = failureGroup.conditions.length > 0;
+
             const drawsA = [], drawsB = [];
             for (let turn = 0; turn < perm.length; turn++) {
                 if (turn % 2 === 0) {
@@ -707,10 +710,14 @@
                 } else {
                     drawsB.push(perm[turn]);
                 }
-                if (evaluateGroup(successGroup, drawsA, drawsB)) return true;
-                if (failureGroup.conditions.length > 0 && evaluateGroup(failureGroup, drawsA, drawsB)) return false;
+                if (hasFailureCondition && evaluateGroup(failureGroup, drawsA, drawsB)) return false;
+                if (hasSuccessCondition && evaluateGroup(successGroup, drawsA, drawsB)) return true;
             }
-            return false;
+            // Loop finished.
+            // If we are here, it means failure condition was never met.
+            // If there was a success condition, it means it was not met, so it's a failure.
+            // If there was NO success condition, then not-failing is a success.
+            return !hasSuccessCondition;
         }
 
         function listWinningPermutations() {
