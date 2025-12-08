@@ -385,6 +385,13 @@
         }
         
         function doLogicalOp(valA, valB, op) {
+            const aIsNull = valA === null;
+            const bIsNull = valB === null;
+
+            if (aIsNull && bIsNull) return null;
+            if (aIsNull) return valB;
+            if (bIsNull) return valA;
+
             if (op === 'AND') return valA && valB;
             if (op === 'OR') return valA || valB;
             if (op === 'XOR') return (valA && !valB) || (!valA && valB);
@@ -475,7 +482,6 @@
         }
 
         function evaluateGroup(group, drawsA, drawsB) {
-            if (group.conditions.length === 0) return true; // Vacuously true if no conditions to evaluate
             const check = (cond) => {
                 const drawnTiles = cond.player === 'A' ? drawsA : drawsB;
                 const intersection = cond.tiles.filter(t => drawnTiles.includes(t));
@@ -652,6 +658,9 @@
                     res2_val = doLogicalOp(g2Met, g3Met, op2);
                     isSuccess = doLogicalOp(g1Met, res2_val, op1);
                 }
+                if (isSuccess === null) {
+                    isSuccess = false;
+                }
             } 
             else if (op1 === 'BEFORE') {
                 const raceWins = evalRace(perm, group1, group2);
@@ -677,6 +686,8 @@
         function factorial(n) { let r=1; for(let i=2;i<=n;i++) r*=i; return r; }
 
         function evalState(perm, group) {
+            if (group.conditions.length === 0) return null;
+
             const drawsA = [], drawsB = [];
             for (let t = 0; t < perm.length; t++) {
                 if (t % 2 === 0) {
