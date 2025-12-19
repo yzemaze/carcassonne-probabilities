@@ -702,45 +702,71 @@
         function evalRace(perm, successGroup, failureGroup) {
             const hasSuccessCondition = successGroup.conditions.length > 0;
             const hasFailureCondition = failureGroup.conditions.length > 0;
-            
-            if (!hasSuccessCondition && !hasFailureCondition) return true; // empty BEFORE empty is vacuously true.
 
-            // If only failure is defined, success means it never happens.
-            if (!hasSuccessCondition) {
+            // Find the first turn where the success condition is met.
+            let successTurn = -1;
+            if (hasSuccessCondition) {
                 const drawsA = [], drawsB = [];
                 for (let turn = 0; turn < perm.length; turn++) {
                     if (turn % 2 === 0) drawsA.push(perm[turn]); else drawsB.push(perm[turn]);
-                    if (evaluateGroup(failureGroup, drawsA, drawsB)) return false;
+                    if (evaluateGroup(successGroup, drawsA, drawsB)) {
+                        successTurn = turn;
+                        break;
+                    }
                 }
-                return true; // Failure was avoided
-            }
-            
-            // If we have a success condition, we find the first success and failure turns.
-            let successTurn = -1;
-            let failureTurn = -1;
-
-            const drawsA = [], drawsB = [];
-            for (let turn = 0; turn < perm.length; turn++) {
-                 if (turn % 2 === 0) drawsA.push(perm[turn]); else drawsB.push(perm[turn]);
-                 if (successTurn === -1 && evaluateGroup(successGroup, drawsA, drawsB)) {
-                     successTurn = turn;
-                 }
-                 if (failureTurn === -1 && hasFailureCondition && evaluateGroup(failureGroup, drawsA, drawsB)) {
-                     failureTurn = turn;
-                 }
-                 // Optimization: if both found, we can stop searching if we only care about which is first.
-                 // But let's find the very first of each for clarity.
             }
 
-            if (successTurn === -1) return false; // Success condition must be met.
-            
-            // If failure condition is defined but never met, the race is invalid/false.
-            if (hasFailureCondition && failureTurn === -1) return false;
-            
-            // If no failure condition, success is enough.
+            // If success is never met, the race is lost (unless success is "always true", e.g. NOT B)
+            if (successTurn === -1) {
+                const successIsAlwaysTrue = !hasSuccessCondition;
+                if (!successIsAlwaysTrue) return false;
+
+                // Check if failure ever happens for the "NOT B" case.
+                let failureHappens = false;
+                const drawsA = [], drawsB = [];
+                for (let turn = 0; turn < perm.length; turn++) {
+                     if (turn % 2 === 0) drawsA.push(perm[turn]); else drawsB.push(perm[turn]);
+                     if (evaluateGroup(failureGroup, drawsA, drawsB)) {
+                         failureHappens = true;
+                         break;
+                     }
+                }
+                return !failureHappens;
+            }
+
+            // If there's no failure condition to race against, success wins.
             if (!hasFailureCondition) return true;
+
+            // For a "BEFORE" race, "at most N" on the failure side is treated as a race against the FIRST tile draw.
+            // This is equivalent to treating it as "at least 1".
+            const effectiveFailureGroup = JSON.parse(JSON.stringify(failureGroup));
+            effectiveFailureGroup.conditions.forEach(cond => {
+                if (cond.quantifier === 'at-most') {
+                    cond.quantifier = 'at-least';
+                    cond.n = 1;
+                }
+            });
             
-            return successTurn < failureTurn;
+            // Now, find the activation turn for this new effective group.
+            let activationTurn = -1;
+            // It should always start false unless a condition is "at least 0".
+            const wasMetAtStart = evaluateGroup(effectiveFailureGroup, [], []); 
+
+            if (wasMetAtStart) {
+                activationTurn = 0;
+            } else {
+                const drawsA = [], drawsB = [];
+                for (let turn = 0; turn < perm.length; turn++) {
+                    if (turn % 2 === 0) drawsA.push(perm[turn]); else drawsB.push(perm[turn]);
+                    if (evaluateGroup(effectiveFailureGroup, drawsA, drawsB)) {
+                        activationTurn = turn;
+                        break;
+                    }
+                }
+            }
+            
+            if (activationTurn === -1) return true; // Failure event never happened.
+            return successTurn < activationTurn;
         }
 
         function listWinningPermutations() {
