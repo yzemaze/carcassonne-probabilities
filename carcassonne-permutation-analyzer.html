@@ -556,6 +556,7 @@
             let processedPermutations = 0;
             const totalPermutations = factorial(deck.length);
             const permutationGenerator = permute(deck);
+            const uniquePermStrings = new Set(); // To store string representations of unique permutations
 
             function processChunk() {
                 const chunkSize = Math.min(10000, totalPermutations - processedPermutations);
@@ -566,7 +567,11 @@
                     
                     if (evaluatePermutation(perm, group1, group2, group3, op1, op2, evalOrder)) {
                         successfulPerms++;
-                        if (storedWinningPermutations.length < 10000) storedWinningPermutations.push(perm.slice());
+                        const permString = perm.join(',');
+                        if (storedWinningPermutations.length < 10000 && !uniquePermStrings.has(permString)) {
+                            storedWinningPermutations.push(perm);
+                            uniquePermStrings.add(permString);
+                        }
                     }
                 }
 
