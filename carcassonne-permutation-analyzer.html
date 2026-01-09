@@ -649,35 +649,62 @@
 
 
         function evaluatePermutation(perm, group1, group2, group3, op1, op2, evalOrder) {
-            let isSuccess = false;
-            let res1_val, res2_val;
+            // Helper to create a predicate function for a group
+            const makePredicate = (group) => (drawsA, drawsB) => {
+                if (group.conditions.length === 0) return null;
+                return evaluateGroup(group, drawsA, drawsB);
+            };
 
-            if (op1 !== 'BEFORE' && op2 !== 'BEFORE') {
-                const g1Met = evalState(perm, group1);
-                const g2Met = evalState(perm, group2);
-                const g3Met = evalState(perm, group3);
+            // Helper to combine two predicates with a logical operator
+            const makeCompoundPredicate = (predA, predB, op) => (drawsA, drawsB) => {
+                return doLogicalOp(predA(drawsA, drawsB), predB(drawsA, drawsB), op);
+            };
+
+            // Helper to get final state of a group for non-race logic
+            const getFinalState = (group) => evalState(perm, group);
+
+            const p1 = makePredicate(group1);
+            const p2 = makePredicate(group2);
+            const p3 = makePredicate(group3);
+
+            if (op1 === 'BEFORE') {
+                // op1 is BEFORE. op2 cannot be BEFORE (UI constraint).
                 if (evalOrder === 'ltr') {
-                    res1_val = doLogicalOp(g1Met, g2Met, op1);
-                    isSuccess = doLogicalOp(res1_val, g3Met, op2);
+                    // (S1 BEFORE S2) op2 S3
+                    const raceWins = evalBefore(perm, p1, p2);
+                    const val3 = getFinalState(group3);
+                    return doLogicalOp(raceWins, val3, op2) || false;
                 } else {
-                    res2_val = doLogicalOp(g2Met, g3Met, op2);
-                    isSuccess = doLogicalOp(g1Met, res2_val, op1);
+                    // S1 BEFORE (S2 op2 S3)
+                    const pRight = makeCompoundPredicate(p2, p3, op2);
+                    return evalBefore(perm, p1, pRight);
                 }
-                if (isSuccess === null) {
-                    isSuccess = false;
+            } else if (op2 === 'BEFORE') {
+                // op2 is BEFORE. op1 cannot be BEFORE.
+                if (evalOrder === 'ltr') {
+                    // (S1 op1 S2) BEFORE S3
+                    const pLeft = makeCompoundPredicate(p1, p2, op1);
+                    return evalBefore(perm, pLeft, p3);
+                } else {
+                    // S1 op1 (S2 BEFORE S3)
+                    const val1 = getFinalState(group1);
+                    const raceWins = evalBefore(perm, p2, p3);
+                    return doLogicalOp(val1, raceWins, op1) || false;
                 }
-            } 
-            else if (op1 === 'BEFORE') {
-                const raceWins = evalRace(perm, group1, group2);
-                const g3Met = evalState(perm, group3);
-                isSuccess = doLogicalOp(raceWins, g3Met, op2);
+            } else {
+                // No BEFORE operator. Standard logic.
+                const val1 = getFinalState(group1);
+                const val2 = getFinalState(group2);
+                const val3 = getFinalState(group3);
+                
+                let res;
+                if (evalOrder === 'ltr') {
+                    res = doLogicalOp(doLogicalOp(val1, val2, op1), val3, op2);
+                } else {
+                    res = doLogicalOp(val1, doLogicalOp(val2, val3, op2), op1);
+                }
+                return res === null ? false : res;
             }
-            else if (op2 === 'BEFORE') {
-                const raceWins = evalRace(perm, group2, group3);
-                const g1Met = evalState(perm, group1);
-                isSuccess = doLogicalOp(g1Met, raceWins, op1);
-            }
-            return isSuccess;
         }
 
         // --- Evaluation Helpers ---
@@ -704,74 +731,55 @@
             return evaluateGroup(group, drawsA, drawsB);
         }
 
-        function evalRace(perm, successGroup, failureGroup) {
-            const hasSuccessCondition = successGroup.conditions.length > 0;
-            const hasFailureCondition = failureGroup.conditions.length > 0;
-
-            // Find the first turn where the success condition is met.
-            let successTurn = -1;
-            if (hasSuccessCondition) {
-                const drawsA = [], drawsB = [];
-                for (let turn = 0; turn < perm.length; turn++) {
-                    if (turn % 2 === 0) drawsA.push(perm[turn]); else drawsB.push(perm[turn]);
-                    if (evaluateGroup(successGroup, drawsA, drawsB)) {
-                        successTurn = turn;
-                        break;
-                    }
-                }
-            }
-
-            // If success is never met, the race is lost (unless success is "always true", e.g. NOT B)
-            if (successTurn === -1) {
-                const successIsAlwaysTrue = !hasSuccessCondition;
-                if (!successIsAlwaysTrue) return false;
-
-                // Check if failure ever happens for the "NOT B" case.
-                let failureHappens = false;
-                const drawsA = [], drawsB = [];
-                for (let turn = 0; turn < perm.length; turn++) {
-                     if (turn % 2 === 0) drawsA.push(perm[turn]); else drawsB.push(perm[turn]);
-                     if (evaluateGroup(failureGroup, drawsA, drawsB)) {
-                         failureHappens = true;
-                         break;
-                     }
-                }
-                return !failureHappens;
-            }
-
-            // If there's no failure condition to race against, success wins.
-            if (!hasFailureCondition) return true;
-
-            // For a "BEFORE" race, "at most N" on the failure side is treated as a race against the FIRST tile draw.
-            // This is equivalent to treating it as "at least 1".
-            const effectiveFailureGroup = JSON.parse(JSON.stringify(failureGroup));
-            effectiveFailureGroup.conditions.forEach(cond => {
-                if (cond.quantifier === 'at-most') {
-                    cond.quantifier = 'at-least';
-                    cond.n = 1;
-                }
-            });
+        function evalBefore(perm, pred1, pred2) {
+            const drawsA = [], drawsB = [];
             
-            // Now, find the activation turn for this new effective group.
-            let activationTurn = -1;
-            // It should always start false unless a condition is "at least 0".
-            const wasMetAtStart = evaluateGroup(effectiveFailureGroup, [], []); 
+            // Determine initial states for Endurance/Race check
+            const val2_init = pred2([], []);
+            // Treat null as false for Set 2 (Target) - if empty, can't be met
+            const set2InitiallyMet = (val2_init === null) ? false : val2_init;
+            
+            // Track if Set 1 has been met
+            // Treat null as true for Set 1 (Precondition) - if empty, already met
+            const val1_init = pred1([], []);
+            let met1 = (val1_init === null) ? true : val1_init;
 
-            if (wasMetAtStart) {
-                activationTurn = 0;
-            } else {
-                const drawsA = [], drawsB = [];
-                for (let turn = 0; turn < perm.length; turn++) {
-                    if (turn % 2 === 0) drawsA.push(perm[turn]); else drawsB.push(perm[turn]);
-                    if (evaluateGroup(effectiveFailureGroup, drawsA, drawsB)) {
-                        activationTurn = turn;
-                        break;
+            for (let i = 0; i < perm.length; i++) {
+                if (i % 2 === 0) drawsA.push(perm[i]); else drawsB.push(perm[i]);
+                
+                const val1 = pred1(drawsA, drawsB);
+                const val2 = pred2(drawsA, drawsB);
+
+                const cond1 = (val1 === null) ? true : val1;
+                const cond2 = (val2 === null) ? false : val2;
+
+                if (set2InitiallyMet) {
+                    // Endurance Mode: Set 2 starts True.
+                    // "Set 1 BEFORE Set 2 fails".
+                    
+                    if (!cond2) {
+                        // Set 2 is violated/ended.
+                        return false; 
                     }
+                    
+                    if (cond1) {
+                         // Set 1 is met while Set 2 is still valid.
+                         return true;
+                    }
+                } else {
+                    // Race Mode: Set 2 starts False.
+                    // "Set 1 strictly BEFORE Set 2 happens".
+                    
+                    if (cond2) {
+                        // Set 2 happened.
+                        if (met1) return true; // S1 happened strictly before.
+                        return false; // S1 not met or simultaneous.
+                    }
+                    
+                    if (cond1) met1 = true;
                 }
             }
-            
-            if (activationTurn === -1) return true; // Failure event never happened.
-            return successTurn < activationTurn;
+            return false;
         }
 
         function listWinningPermutations() {
