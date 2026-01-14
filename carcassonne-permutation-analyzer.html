@@ -1,811 +1,435 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Permutation Analyzer</title>
-    <style>
-        :root {
-            color-scheme: light dark;
-        }
+<meta charset="UTF-8">
+<title>Carcassonne Probability Analyzer</title>
+<style>
+    :root {
+        color-scheme: light dark;
+    }
 
-        body {
-            background-color: light-dark(#f4f4f4, #0c0c0c);
-            font-family: sans-serif;
-            font-size: 0.8em;
-        }
+    body {
+        background-color: light-dark(#f4f4f4, #0c0c0c);
+        font-family: sans-serif;
+        font-size: 0.85em;
+        color: light-dark(#333, #ccc);
+        margin: 20px;
+    }
 
-        body,
-        #analyzerForm input,
-        #analyzerForm select {
-            color: light-dark(#333, #ccc);
-        }
+    h2, h3, #footer {
+        text-align: center;
+        margin: 15px 0 10px 0;
+    }
 
-        h1,
-        h2,
-        h3,
-        #footer {
-            text-align: center;
-            margin: 15px 0 10px 0;
-        }
-				h3#permutation-warning {
-					margin-top: 0;
-				}
+    .box-container {
+        border-radius: 8px;
+        background-color: light-dark(#fff, #333);
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        display: grid;
+        gap: 10px;
+        margin: 0 auto 20px auto;
+        padding: 15px;
+        width: 90%;
+        max-width: 600px;
+    }
 
-        label {
-            align-self: center;
-        }
+    .settings {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        align-items: center;
+        gap: 5px;
+    }
 
-        .box-container{
-            border-radius: 8px;
-            background-color: light-dark(#fff, #333);
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            display: grid;
-            gap: 10px;
-            margin: 0 auto;
-            padding: 15px;
-            width: 80%;
-            max-width: 400px;
-        }
+    fieldset {
+        grid-column: 1 / -1;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        padding: 10px;
+        background-color: transparent;
+        margin-bottom: 5px;
+    }
 
-        #results {
-            grid-template-columns: 1fr;
-        }
+    legend {
+        font-weight: bold;
+        padding: 0 5px;
+    }
 
-        input,
-        select {
-            background-color: light-dark(#f9f9f9, #222);
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-size: 1em;
-            padding: 2px 5px;
-						min-width: 30px;
-        }
+    input, select {
+        background-color: light-dark(#f9f9f9, #222);
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 1em;
+        padding: 2px 5px;
+        color: light-dark(#333, #ccc);
+    }
 
-        #totalTiles,
-				#iterations {
-            text-align: right;
-        }
-				
-				.full-width {
-						grid-column: span 2;
-				}
+    button {
+        padding: 5px 10px;
+        background-color: light-dark(#4CAF50, #005B04);
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
 
-				.settings {
-						display: grid;
-						grid-column: span 2;
-						grid-template-columns: 2fr 1fr;
-				}
+		button[disabled] {
+				background-color: gray;
+		}
 
-        .condition-group {
-            grid-column: span 2;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            padding: 10px;
-        }
+    button:hover {
+        filter: brightness(110%);
+    }
 
-        .group-header {
-            display: grid;
-						grid-template-columns: 1fr auto;
-            margin-bottom: 5px;
-        }
+    .action-btn {
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        padding: 1px 5px;
+        line-height: 24px;
+        font-size: 1.2em;
+        font-weight: bold;
+        text-align: center;
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        vertical-align: middle;
+        margin-left: 5px;
+    }
 
-        .group-header h3 {
-            margin: 0;
-						text-align: left;
-        }
+    .add-btn {
+        background-color: light-dark(#4CAF50, #005B04);
+        color: white;
+    }
 
-        .set-operator-container {
-            grid-column: span 2;
-            text-align: center;
-        }
+    .remove-btn {
+        background: #ff4d4d;
+        color: white;
+    }
 
-        .condition-line {
-            display: grid;
-            grid-template-columns: repeat(5, auto) 1fr auto;
-            gap: 5px;
-            align-items: center;
-            margin-bottom: 5px;
-        }
+    .full-width {
+        grid-column: 1 / -1;
+        margin-top: 5px;
+    }
 
-        .condition-line .op-selector {
-            grid-column: 1 / -1;
-            justify-self: start;
-        }
+    pre {
+        background-color: light-dark(#eee, #222);
+        border: 1px solid #ccc;
+        padding: 10px;
+        border-radius: 4px;
+        max-height: 400px;
+        overflow: auto;
+        font-family: monospace;
+        font-size: 0.9em;
+        margin: 0;
+        white-space: pre-wrap;
+        word-break: break-all;
+    }
 
-				.quantifier-n {
-					max-width: 2em;
-				}
+    .node {
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        padding: 8px;
+        margin: 8px 0;
+        background-color: light-dark(#fafafa, #2a2a2a);
+    }
 
-        .action-btn {
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            padding: 0;
-            width: 24px;
-            height: 24px;
-            line-height: 24px;
-            font-size: 1.2em;
-            font-weight: bold;
-            text-align: center;
-            display: inline-flex;
-            justify-content: center;
-            align-items: center;
-        }
+    .child {
+        margin-left: 20px;
+        border-left: 1px solid #ddd;
+        padding-left: 10px;
+    }
 
-        .add-btn {
-            background-color: light-dark(#4CAF50, #005B04);
-            color: white;
-        }
+    .label {
+        font-weight: bold;
+        margin-right: 6px;
+        color: light-dark(#555, #bbb);
+    }
 
-        .remove-btn {
-            background: #ff4d4d;
-            color: white;
-        }
-
-        button {
-            padding: 5px;
-            background-color: light-dark(#4CAF50, #005B04);
-            color: light-dark(white, #ddd);
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
-				button.full-width {
-						margin-top: 5px;
-				}
-
-        button:hover {
-						filter: brightness(120%);
-        }
-
-        progress {
-            width: 100%;
-        }
-
-        #results table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        #results th,
-        #results td {
-            padding: 8px;
-            text-align: right;
-            border: 1px solid #555;
-        }
-
-        #results th:first-child {
-            text-align: left;
-        }
-
-        #simulation-options {
-            display: none;
-        }
-
-        #results-footer {
-            text-align: center;
-            max-width: 600px;
-            margin: 0 auto;
-        }
-
-        #listPermutationsBtn {
-            margin-top: 10px;
-            width: 50%;
-        }
-
-        #permutation-list-container {
-            display: none;
-						margin-top: 10px;
-        }
-
-        #permutation-list {
-            background-color: light-dark(#eee, #222);
-            border: 1px solid #ccc;
-            padding: 2px 5px;
-            border-radius: 4px;
-            max-height: 400px;
-            overflow: auto;
-						font-size: 0.8rem;
-        }
-
-        #footer p {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-        }
-    </style>
-</head>
-<body>
-    <h1>Permutation Analyzer</h1>
-
-    <form id="analyzerForm" class="box-container" onsubmit="return false;">
-				<div class="settings">
-						<label for="totalTiles">Total Tiles:</label>
-						<input type="number" id="totalTiles" value="8" min="2" max="10" onchange="validateTiles(this)">
-        </div>
-				<div class="settings">
-					<label for="specificTiles">Specific Tiles:</label>
-					<input type="text" id="specificTiles" placeholder="e.g. a, b">
-				</div>
-				<div class="settings">
-						<label for="method">Method:</label>
-						<select id="method" onchange="toggleCalcMethod()">
-							<option value="exact">Calculation</option>
-							<option value="simulation">Simulation</option>
-						</select>
-				</div>
-        <div id="simulation-options" class="settings">
-            <label for="iterations">Iterations:</label>
-            <input type="number" id="iterations" value="100000" min="1000">
-        </div>
-        <div class="settings">
-            <label for="evalOrder">Evaluation Order:</label>
-            <select id="evalOrder">
-                <option value="ltr" selected>(S1 o S2) o S3</option>
-                <option value="rtl">S1 o (S2 o S3)</option>
-            </select>
-        </div>
-
-        <div class="condition-group full-width">
-            <div class="group-header"><h3>Set 1</h3><button type="button" class="action-btn add-btn" onclick="addCondition('1')">+</button></div>
-            <div id="group1-conditions"></div>
-        </div>
-
-        <div class="set-operator-container">
-            <select class="set-operator" id="op1" onchange="handleOperatorChange(this)">
-                <option>AND</option> <option>OR</option> <option>XOR</option> <option>NOR</option> <option>NAND</option> <option selected>BEFORE</option>
-            </select>
-        </div>
-
-        <div class="condition-group full-width">
-            <div class="group-header"><h3>Set 2</h3><button type="button" class="action-btn add-btn" onclick="addCondition('2')">+</button></div>
-            <div id="group2-conditions"></div>
-        </div>
-
-        <div class="set-operator-container">
-            <select class="set-operator" id="op2" onchange="handleOperatorChange(this)">
-                <option selected>AND</option> <option>OR</option> <option>XOR</option> <option>NOR</option> <option>NAND</option> <option>BEFORE</option>
-            </select>
-        </div>
-
-        <div id="groupC-container" class="condition-group full-width">
-            <div class="group-header"><h3>Set 3</h3><button type="button" class="action-btn add-btn" onclick="addCondition('3')">+</button></div>
-            <div id="group3-conditions"></div>
-        </div>
-
-        <button type="button" id="calculateButton" class="full-width" onclick="runCalculation()">Calculate Probabilities</button>
-        <progress id="progress" value="0" max="100" class="full-width" style="display: none;"></progress>
-    </form>
-
-    <h2 class="result-header">Results</h2>
-    <div id="results" class="box-container">
-        <table>
-            <thead>
-                <tr>
-                    <th></th>
-                    <th>n</th>
-                    <th>%</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <th id="results-header-permutations">Permutations</th>
-                    <td id="res-perms-abs">...</td>
-                    <td>100.00%</td>
-                </tr>
-                <tr>
-                    <th>Conditions Met</th>
-                    <td id="res-met-abs">...</td>
-                    <td id="res-met-perc">...</td>
-                </tr>
-                <tr>
-                    <th>Not Met</th>
-                    <td id="res-not-met-abs">...</td>
-                    <td id="res-not-met-perc">...</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-    <div id="results-footer">
-        <button type="button" id="listPermutationsBtn" onclick="listWinningPermutations()" disabled>List Winning Permutations</button>
-    </div>
-    <div id="permutation-list-container" class="box-container">
-        <h3 id="permutation-warning"></h3>
-        <pre id="permutation-list"></pre>
-    </div>
+    #footer p {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+    }
     
-    <div id="footer">
-        <p>
-            <a href="https://github.com/yzemaze/carcassonne-probabilities">Examples, feedback, source code etc.</a>
-            <span>|</span>
-            <a href="./carcassonne-draw-probabilities.html">Draw Simulator</a>
-        </p>
+    a {
+        color: light-dark(#0066cc, #66b2ff);
+        text-decoration: none;
+    }
+    a:hover {
+        text-decoration: underline;
+    }
+</style>
+</head>
+
+<body>
+<h2>Carcassonne Probability Analyzer</h2>
+
+<div class="box-container">
+    <div class="settings">
+        <label for="totalTiles">Total tiles:</label>
+        <input id="totalTiles" type="number" value="8" min="2" max="100">
+    </div>
+    <div class="settings">
+        <label for="careTiles">Specific tiles:</label>
+        <input id="careTiles" value="c,d" placeholder="e.g. c, d">
+    </div>
+    <div class="settings">
+        <label for="sims">Simulations:</label>
+        <input id="sims" type="number" value="100000" min="1000">
     </div>
 
-    <script>
-        let storedWinningPermutations = [];
+    <fieldset>
+        <legend>Logic Tree</legend>
+        <div id="tree"></div>
+    </fieldset>
 
-        document.addEventListener('DOMContentLoaded', () => {
-            addCondition('1');
-            addCondition('2');
-            addCondition('3');
-            document.getElementById('op1').dispatchEvent(new Event('change'));
-            document.getElementById('op2').dispatchEvent(new Event('change'));
-            document.getElementById('totalTiles').addEventListener('input', () => validateTiles(document.getElementById('totalTiles')));
-            toggleCalcMethod();
-        });
+    <button class="full-width" onclick="run()">Run Simulation</button>
+</div>
 
-        function toggleCalcMethod() {
-            const isSimulation = document.getElementById('method').value === 'simulation';
-            document.getElementById('simulation-options').style.display = isSimulation ? 'grid' : 'none';
+<h3>Results</h3>
+<div class="box-container">
+    <pre id="out"></pre>
+</div>
 
-            const totalTilesInput = document.getElementById('totalTiles');
-            validateTiles(totalTilesInput); // Re-validate tiles when method changes
+<div id="footer">
+    <p>
+        <a href="https://github.com/yzemaze/carcassonne-probabilities">Examples, feedback, source code etc.</a>
+        <span>|</span>
+        <a href="./carcassonne-draw-probabilities.html">Draw Simulator</a>
+    </p>
+</div>
+<script>
+/* =========================
+   Utilities
+========================= */
+function shuffle(a) {
+  for (let i=a.length-1;i>0;i--) {
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+}
 
-            const totalTiles = parseInt(totalTilesInput.value);
-            const isExact = !isSimulation;
-            totalTilesInput.max = isExact ? 10 : 100; // Update max attribute dynamically
+/* =========================
+   Helpers for BEFORE logic
+========================= */
+function isBeforeBranch(el) {
+  return el.classList.contains("child") &&
+         (el.querySelector(".label")?.textContent === "EARLIER" ||
+          el.querySelector(".label")?.textContent === "LATER");
+}
 
-            // Update button text
-            const calculateButton = document.getElementById('calculateButton');
-            calculateButton.textContent = isSimulation ? 'Run Simulation' : 'Calculate Probabilities';
+function updateBeforeBranch(branch) {
+  const hasNode = !!branch.querySelector(":scope > .node");
 
-            // Update table header
-            const tableHeader = document.getElementById('results-header-permutations');
-            tableHeader.textContent = isSimulation ? 'Simulations' : 'Permutations';
-        }
+	branch.querySelectorAll(":scope > button").forEach(b => {
+		b.disabled = hasNode;
+	});
+}
 
+/* =========================
+   Node creation
+========================= */
+const tree = document.getElementById("tree");
 
-        function handleOperatorChange(selectElement) {
-            const op1Select = document.getElementById('op1');
-            const op2Select = document.getElementById('op2');
+function createRoot() {
+  const d = document.createElement("div");
+  d.className = "node";
+  d.dataset.type = "logic";
+  d.innerHTML = `
+    <span class="label">ROOT LOGIC</span>
+    <select class="op">
+      <option>AND</option>
+      <option>OR</option>
+      <option>XOR</option>
+      <option>NAND</option>
+      <option>NOR</option>
+    </select>
+    <button class="action-btn add-btn" onclick="addCondition(this.parentNode)" title="Add Condition">+Condition</button>
+    <button class="action-btn add-btn" onclick="addLogic(this.parentNode)" title="Add Logic Group">+LogicGroup</button>
+    <button class="action-btn add-btn" onclick="addBefore(this.parentNode)" title="Add BEFORE">+Before</button>
+  `;
+  tree.appendChild(d);
+}
 
-            // Function to disable/enable 'BEFORE' option in a select
-            const toggleBeforeOption = (select, disable) => {
-                Array.from(select.options).forEach(option => {
-                    if (option.value === 'BEFORE') {
-                        option.disabled = disable;
-                        if (disable && select.value === 'BEFORE') {
-                            select.value = 'AND'; // Fallback if BEFORE is currently selected and needs disabling
-                        }
-                    }
-                });
-            };
+function addCondition(parent) {
+  const d = document.createElement("div");
+  d.className = "node child";
+  d.dataset.type = "condition";
+  d.innerHTML = `
+    <span class="label">COND</span>
+    <select class="player"><option>A</option><option>B</option></select>
+    <select class="quant">
+      <option>at least</option>
+      <option>at most</option>
+      <option>exactly</option>
+    </select>
+		draws <input class="num" type="number" value="1" min="0" style="width: 40px;">
+    of <input class="tiles" value="" placeholder="c, d" style="width: 80px;">
+    <button class="action-btn remove-btn" onclick="removeNode(this)" title="Remove">×</button>
+  `;
+  parent.appendChild(d);
 
-            if (op1Select.value === 'BEFORE') {
-                toggleBeforeOption(op2Select, true);
-            } else if (op2Select.value === 'BEFORE') {
-                toggleBeforeOption(op1Select, true);
-            } else { // No BEFORE selected, enable BEFORE for both
-                toggleBeforeOption(op1Select, false);
-                toggleBeforeOption(op2Select, false);
-            }
-        }
-        
-        function doLogicalOp(valA, valB, op) {
-            const aIsNull = valA === null;
-            const bIsNull = valB === null;
+  if (isBeforeBranch(parent)) updateBeforeBranch(parent);
+}
 
-            if (aIsNull && bIsNull) return null;
-            if (aIsNull) return valB;
-            if (bIsNull) return valA;
+function addLogic(parent) {
+  const d = document.createElement("div");
+  d.className = "node child";
+  d.dataset.type = "logic";
+  d.innerHTML = `
+    <span class="label">LOGIC</span>
+    <select class="op">
+      <option>AND</option>
+      <option>OR</option>
+      <option>XOR</option>
+      <option>NAND</option>
+      <option>NOR</option>
+    </select>
+    <button class="action-btn add-btn" onclick="addCondition(this.parentNode)" title="Add Condition">+Condition</button>
+    <button class="action-btn add-btn" onclick="addLogic(this.parentNode)" title="Add Logic Group">+LogicGroup</button>
+    <button class="action-btn add-btn" onclick="addBefore(this.parentNode)" title="Add BEFORE">+Before</button>
+    <button class="action-btn remove-btn" onclick="removeNode(this)" title="Remove">×</button>
+  `;
+  parent.appendChild(d);
 
-            if (op === 'AND') return valA && valB;
-            if (op === 'OR') return valA || valB;
-            if (op === 'XOR') return (valA && !valB) || (!valA && valB);
-            if (op === 'NOR') return !(valA || valB);
-            if (op === 'NAND') return !(valA && valB);
-            return false;
-        }
+  if (isBeforeBranch(parent)) updateBeforeBranch(parent);
+}
 
-        // --- UI Functions ---
-        function validateTiles(input) {
-            let value = parseInt(input.value);
-            const isSimulation = document.getElementById('method').value === 'simulation';
-            const maxTiles = isSimulation ? 100 : 10; // Max 100 for simulation, 10 for exact
+function addBefore(parent) {
+  const d = document.createElement("div");
+  d.className = "node child";
+  d.dataset.type = "before";
+  d.innerHTML = `
+    <span class="label">BEFORE</span>
 
-            if (isNaN(value) || value < 2) {
-                input.value = 2;
-            } else if (value > maxTiles) {
-                input.value = maxTiles;
-            }
-        }
+    <div class="child">
+      <span class="label">EARLIER</span>
+    <button class="action-btn add-btn" onclick="addCondition(this.parentNode)" title="Add Condition">+Condition</button>
+    <button class="action-btn add-btn" onclick="addLogic(this.parentNode)" title="Add Logic Group">+LogicGroup</button>
+    </div>
 
-        function addCondition(groupId) {
-            const container = document.getElementById(`group${groupId}-conditions`);
-            const lineIndex = container.children.length;
-            const line = document.createElement('div');
-            line.className = 'condition-line';
-            const playerASelected = (groupId === '2') ? '' : 'selected'; // Default Player for Set 2 is B
-            const playerBSelected = (groupId === '2') ? 'selected' : '';
-            line.innerHTML = `
-                <select class="op-selector" style="display: ${lineIndex === 0 ? 'none' : 'block'};">
-                    <option>AND</option><option>OR</option><option>XOR</option><option>NOR</option><option>NAND</option>
-                </select>
-                <select class="player">
-                    <option value="A" ${playerASelected}>A</option>
-                    <option value="B" ${playerBSelected}>B</option>
-                </select>
-                draws
-                <select class="quantifier">
-                    <option value="at-least">at least</option>
-                    <option value="at-most">at most</option>
-                    <option value="exactly">exactly</option>
-                </select>
-                <input type="number" class="quantifier-n" value="1" min="0">
-                <span class="quantifier-of">of</span>
-                <input type="text" class="tiles" placeholder="e.g. a, b">
-                <button type="button" class="action-btn remove-btn" onclick="removeCondition(this.parentElement)">-</button>
-            `;
-            container.appendChild(line);
-        }
+    <div class="child">
+      <span class="label">LATER</span>
+    <button class="action-btn add-btn" onclick="addCondition(this.parentNode)" title="Add Condition">+Condition</button>
+    <button class="action-btn add-btn" onclick="addLogic(this.parentNode)" title="Add Logic Group">+LogicGroup</button>
+    </div>
 
-        function removeCondition(lineElement) {
-            const container = lineElement.parentElement;
-            lineElement.remove();
-            const remainingLines = Array.from(container.children);
-            remainingLines.forEach((line, index) => {
-                const opSelector = line.querySelector('.op-selector');
-                if (opSelector) {
-                    opSelector.style.display = (index === 0) ? 'none' : 'block';
-                }
-            });
-        }
+    <button class="action-btn remove-btn" onclick="removeNode(this)" title="Remove">×</button>
+  `;
+  parent.appendChild(d);
+}
 
-        // --- Parsing and Evaluation ---
-        function parseConditions(groupId) {
-            const container = document.getElementById(`group${groupId}-conditions`);
-            if (!container) return { conditions: [], operators: [] };
-            const lines = Array.from(container.children);
-            const conditions = [];
-            const operators = [];
-            for (let i = 0; i < lines.length; i++) {
-                const line = lines[i];
-                const tiles = [...new Set(line.querySelector('.tiles').value.split(',').map(t => t.trim()).filter(Boolean))];
-                
-                // Only add condition if tiles are specified
-                if (tiles.length > 0) {
-                    if (i > 0) operators.push(line.querySelector('.op-selector').value);
-                    const quantifier = line.querySelector('.quantifier').value;
-                    const n = parseInt(line.querySelector('.quantifier-n').value);
-                    conditions.push({
-                        player: line.querySelector('.player').value,
-                        quantifier: quantifier,
-                        tiles: tiles,
-                        n: n
-                    });
-                }
-            }
-            return { conditions, operators };
-        }
+function removeNode(btn) {
+  const node = btn.parentNode;
+  const parent = node.parentNode;
+  node.remove();
 
-        function evaluateGroup(group, drawsA, drawsB) {
-            const check = (cond) => {
-                const drawnTiles = cond.player === 'A' ? drawsA : drawsB;
-                const intersection = drawnTiles.filter(t => cond.tiles.includes(t));
-                // No need to check cond.tiles.length === 0 here, as empty tile conditions are filtered in parseConditions
-                if (cond.quantifier === 'at-least') return intersection.length >= cond.n;
-                if (cond.quantifier === 'at-most') return intersection.length <= cond.n;
-                if (cond.quantifier === 'exactly') return intersection.length === cond.n;
-                return false;
-            };
-            let result = check(group.conditions[0]);
-            for (let i = 0; i < group.operators.length; i++) {
-                const nextResult = check(group.conditions[i + 1]);
-                const op = group.operators[i];
-                result = doLogicalOp(result, nextResult, op);
-            }
-            return result;
-        }
+  if (isBeforeBranch(parent)) {
+    updateBeforeBranch(parent);
+  }
+}
 
-        // --- Permutation Generation ---
-        function* permute(arr) {
-            const length = arr.length;
-            const c = new Array(length).fill(0);
-            let i = 1;
-            yield arr.slice();
-            while (i < length) {
-                if (c[i] < i) {
-                    const k = (i % 2) ? c[i] : 0;
-                    [arr[i], arr[k]] = [arr[k], arr[i]];
-                    c[i]++;
-                    i = 1;
-                    yield arr.slice();
-                } else {
-                    c[i] = 0;
-                    i++;
-                }
-            }
-        }
-        
-        // --- Main Calculation ---
-        function runCalculation() {
-            const method = document.getElementById('method').value;
-            if (method === 'exact') {
-                runExactCalculation();
-            }
-            else {
-                runSimulation();
-            }
-        }
-        
-        async function runExactCalculation() {
-            validateTiles(document.getElementById('totalTiles'));
-            const totalTiles = parseInt(document.getElementById('totalTiles').value);
-            
-            const group1 = parseConditions('1');
-            const group2 = parseConditions('2');
-            const group3 = parseConditions('3');
-            const op1 = document.getElementById('op1').value;
-            const op2 = document.getElementById('op2').value;
-            const evalOrder = document.getElementById('evalOrder').value;
+/* =========================
+   Evaluation
+========================= */
+function evalNode(node, draws) {
+  const type = node.dataset.type;
 
-            const deck = [...document.getElementById('specificTiles').value.split(',').map(t => t.trim()).filter(Boolean), 
-                          ...Array(totalTiles - document.getElementById('specificTiles').value.split(',').map(t => t.trim()).filter(Boolean).length).fill('_')];
+  if (type === "condition") {
+    const player = node.querySelector(".player").value;
+    const quant = node.querySelector(".quant").value;
+    const num = +node.querySelector(".num").value;
+    const tiles = new Set(
+      node.querySelector(".tiles").value.split(",").map(x=>x.trim()).filter(Boolean)
+    );
 
-            const progress = document.getElementById('progress');
-            progress.style.display = 'block';
-            ['res-perms-abs', 'res-met-abs', 'res-met-perc', 'res-not-met-abs', 'res-not-met-perc'].forEach(id => document.getElementById(id).textContent = '...');
-            storedWinningPermutations = [];
-            document.getElementById('listPermutationsBtn').disabled = true;
-            document.getElementById('permutation-list-container').style.display = 'none';
+    let count = 0;
+    let firstTurn = null;
 
-            let successfulPerms = 0;
-            let processedPermutations = 0;
-            const totalPermutations = factorial(deck.length);
-            const permutationGenerator = permute(deck);
-            const uniquePermStrings = new Set(); // To store string representations of unique permutations
+    draws.forEach((d,i)=>{
+      if (d.player===player && tiles.has(d.tile)) {
+        count++;
+        if (firstTurn===null) firstTurn=i;
+      }
+    });
 
-            function processChunk() {
-                const chunkSize = Math.min(10000, totalPermutations - processedPermutations);
-                for (let i = 0; i < chunkSize; i++) {
-                    const perm = permutationGenerator.next().value;
-                    if (!perm) { finalize(totalPermutations, successfulPerms, false); return; }
-                    processedPermutations++;
-                    
-                    if (evaluatePermutation(perm, group1, group2, group3, op1, op2, evalOrder)) {
-                        successfulPerms++;
-                        const permString = perm.join(',');
-                        if (storedWinningPermutations.length < 10000 && !uniquePermStrings.has(permString)) {
-                            storedWinningPermutations.push(perm);
-                            uniquePermStrings.add(permString);
-                        }
-                    }
-                }
+    let ok=false;
+    if (quant==="at least") ok = count>=num;
+    if (quant==="at most") ok = count<=num;
+    if (quant==="exactly") ok = count===num;
 
-                progress.value = (processedPermutations / totalPermutations) * 100;
-                if (processedPermutations < totalPermutations) setTimeout(processChunk, 0); else finalize(totalPermutations, successfulPerms, false);
-            }
-            
-            processChunk();
-        }
+    return { ok, turn:firstTurn };
+  }
 
-        async function runSimulation() {
-            validateTiles(document.getElementById('totalTiles'));
-            const totalTiles = parseInt(document.getElementById('totalTiles').value);
-            const iterations = parseInt(document.getElementById('iterations').value);
+  if (type === "before") {
+    const branches = [...node.children].filter(c => c.classList.contains("child"));
+    const left = branches[0].querySelector(".node");
+    const right = branches[1].querySelector(".node");
 
-            const group1 = parseConditions('1');
-            const group2 = parseConditions('2');
-            const group3 = parseConditions('3');
-            const op1 = document.getElementById('op1').value;
-            const op2 = document.getElementById('op2').value;
-            const evalOrder = document.getElementById('evalOrder').value;
+    if (!left || !right) return { ok:false };
 
-            const deck = [...document.getElementById('specificTiles').value.split(',').map(t => t.trim()).filter(Boolean),
-                          ...Array(totalTiles - document.getElementById('specificTiles').value.split(',').map(t => t.trim()).filter(Boolean).length).fill('_')];
+    const a = evalNode(left,draws);
+    const b = evalNode(right,draws);
 
-            const progress = document.getElementById('progress');
-            progress.style.display = 'block';
-            ['res-perms-abs', 'res-met-abs', 'res-met-perc', 'res-not-met-abs', 'res-not-met-perc'].forEach(id => document.getElementById(id).textContent = '...');
-            storedWinningPermutations = [];
-            document.getElementById('listPermutationsBtn').disabled = true;
-            document.getElementById('permutation-list-container').style.display = 'none';
+    return {
+      ok: a.ok && b.ok && a.turn < b.turn
+    };
+  }
 
-            let successfulPerms = 0;
-            let processedIterations = 0;
-            const uniquePermStrings = new Set(); // To store string representations of unique permutations
+  if (type === "logic") {
+    const op = node.querySelector(".op").value;
+    const kids = [...node.children].filter(x=>x.dataset?.type);
+    const rs = kids.map(k=>evalNode(k,draws).ok);
 
-            function processChunk() {
-                const chunkSize = Math.min(10000, iterations - processedIterations);
-                for (let i = 0; i < chunkSize; i++) {
-                    const perm = deck.slice();
-                    shuffle(perm);
-                    
-                    if (evaluatePermutation(perm, group1, group2, group3, op1, op2, evalOrder)) {
-                        successfulPerms++;
-                        const permString = perm.join(',');
-                        if (storedWinningPermutations.length < 10000 && !uniquePermStrings.has(permString)) {
-                            storedWinningPermutations.push(perm);
-                            uniquePermStrings.add(permString);
-                        }
-                    }
-                    processedIterations++;
-                }
+    if (op==="AND") return { ok: rs.every(Boolean) };
+    if (op==="OR") return { ok: rs.some(Boolean) };
+    if (op==="XOR") return { ok: rs.filter(Boolean).length===1 };
+    if (op==="NAND") return { ok: !rs.every(Boolean) };
+    if (op==="NOR") return { ok: !rs.some(Boolean) };
+  }
+}
 
-                progress.value = (processedIterations / iterations) * 100;
-                if (processedIterations < iterations) {
-                    setTimeout(processChunk, 0);
-                } else {
-                    finalize(iterations, successfulPerms, true);
-                }
-            }
+/* =========================
+   Run
+========================= */
+function run() {
+  const total = +totalTiles.value;
+  const care = careTiles.value.split(",").map(x=>x.trim()).filter(Boolean);
+  const sims = +document.getElementById("sims").value;
 
-            processChunk();
-        }
+  let met = 0;
+  const perms = new Set();
 
-        function finalize(total, successful, isSimulation) {
-            const probSuccess = total > 0 ? successful / total : 0;
-            document.getElementById('res-perms-abs').textContent = total;
-            document.getElementById('res-met-abs').textContent = successful;
-            document.getElementById('res-not-met-abs').textContent = total - successful;
-            document.getElementById('res-met-perc').textContent = `${(probSuccess * 100).toFixed(2)}%`;
-            document.getElementById('res-not-met-perc').textContent = `${((1 - probSuccess) * 100).toFixed(2)}%`;
-            progress.style.display = 'none';
-            if (storedWinningPermutations.length > 0) document.getElementById('listPermutationsBtn').disabled = false;
-        }
+  for (let i=0;i<sims;i++) {
+    const deck=[];
+    for (let j=0;j<total;j++) deck.push(care[j]||"_");
+    shuffle(deck);
 
+    const draws = deck.map((t,i)=>({ tile:t, player:i%2===0?"A":"B" }));
 
-        function evaluatePermutation(perm, group1, group2, group3, op1, op2, evalOrder) {
-            // Helper to create a predicate function for a group
-            const makePredicate = (group) => (drawsA, drawsB) => {
-                if (group.conditions.length === 0) return null;
-                return evaluateGroup(group, drawsA, drawsB);
-            };
+    if (evalNode(tree.firstElementChild,draws).ok) {
+      met++;
+      perms.add(deck.map(t=>care.includes(t)?t:"_").join(","));
+    }
+  }
 
-            // Helper to combine two predicates with a logical operator
-            const makeCompoundPredicate = (predA, predB, op) => (drawsA, drawsB) => {
-                return doLogicalOp(predA(drawsA, drawsB), predB(drawsA, drawsB), op);
-            };
+  const notMet = sims - met;
 
-            // Helper to get final state of a group for non-race logic
-            const getFinalState = (group) => evalState(perm, group);
+  out.textContent =
+`Simulations: ${sims}
 
-            const p1 = makePredicate(group1);
-            const p2 = makePredicate(group2);
-            const p3 = makePredicate(group3);
+Conditions met:
+  ${met} (${(met/sims*100).toFixed(2)}%)
 
-            if (op1 === 'BEFORE') {
-                // op1 is BEFORE. op2 cannot be BEFORE (UI constraint).
-                if (evalOrder === 'ltr') {
-                    // (S1 BEFORE S2) op2 S3
-                    const raceWins = evalBefore(perm, p1, p2);
-                    const val3 = getFinalState(group3);
-                    return doLogicalOp(raceWins, val3, op2) || false;
-                } else {
-                    // S1 BEFORE (S2 op2 S3)
-                    const pRight = makeCompoundPredicate(p2, p3, op2);
-                    return evalBefore(perm, p1, pRight);
-                }
-            } else if (op2 === 'BEFORE') {
-                // op2 is BEFORE. op1 cannot be BEFORE.
-                if (evalOrder === 'ltr') {
-                    // (S1 op1 S2) BEFORE S3
-                    const pLeft = makeCompoundPredicate(p1, p2, op1);
-                    return evalBefore(perm, pLeft, p3);
-                } else {
-                    // S1 op1 (S2 BEFORE S3)
-                    const val1 = getFinalState(group1);
-                    const raceWins = evalBefore(perm, p2, p3);
-                    return doLogicalOp(val1, raceWins, op1) || false;
-                }
-            } else {
-                // No BEFORE operator. Standard logic.
-                const val1 = getFinalState(group1);
-                const val2 = getFinalState(group2);
-                const val3 = getFinalState(group3);
-                
-                let res;
-                if (evalOrder === 'ltr') {
-                    res = doLogicalOp(doLogicalOp(val1, val2, op1), val3, op2);
-                } else {
-                    res = doLogicalOp(val1, doLogicalOp(val2, val3, op2), op1);
-                }
-                return res === null ? false : res;
-            }
-        }
+Conditions not met:
+  ${notMet} (${(notMet/sims*100).toFixed(2)}%)
 
-        // --- Evaluation Helpers ---
-        function shuffle(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
-        }
+Winning permutations (${perms.size}):
+${[...perms].sort().join("\n")}`;
+}
 
-        function factorial(n) { let r=1; for(let i=2;i<=n;i++) r*=i; return r; }
-
-        function evalState(perm, group) {
-            if (group.conditions.length === 0) return null;
-
-            const drawsA = [], drawsB = [];
-            for (let t = 0; t < perm.length; t++) {
-                if (t % 2 === 0) {
-                    drawsA.push(perm[t]);
-                } else {
-                    drawsB.push(perm[t]);
-                }
-            }
-            return evaluateGroup(group, drawsA, drawsB);
-        }
-
-        function evalBefore(perm, pred1, pred2) {
-            const drawsA = [], drawsB = [];
-            
-            // Determine initial states for Endurance/Race check
-            const val2_init = pred2([], []);
-            // Treat null as false for Set 2 (Target) - if empty, can't be met
-            const set2InitiallyMet = (val2_init === null) ? false : val2_init;
-            
-            // Track if Set 1 has been met
-            // Treat null as true for Set 1 (Precondition) - if empty, already met
-            const val1_init = pred1([], []);
-            let met1 = (val1_init === null) ? true : val1_init;
-
-            for (let i = 0; i < perm.length; i++) {
-                if (i % 2 === 0) drawsA.push(perm[i]); else drawsB.push(perm[i]);
-                
-                const val1 = pred1(drawsA, drawsB);
-                const val2 = pred2(drawsA, drawsB);
-
-                const cond1 = (val1 === null) ? true : val1;
-                const cond2 = (val2 === null) ? false : val2;
-
-                if (set2InitiallyMet) {
-                    // Endurance Mode: Set 2 starts True.
-                    // "Set 1 BEFORE Set 2 fails".
-                    
-                    if (!cond2) {
-                        // Set 2 is violated/ended.
-                        return false; 
-                    }
-                    
-                    if (cond1) {
-                         // Set 1 is met while Set 2 is still valid.
-                         return true;
-                    }
-                } else {
-                    // Race Mode: Set 2 starts False.
-                    // "Set 1 strictly BEFORE Set 2 happens".
-                    
-                    if (cond2) {
-                        // Set 2 happened.
-                        if (met1) return true; // S1 happened strictly before.
-                        return false; // S1 not met or simultaneous.
-                    }
-                    
-                    if (cond1) met1 = true;
-                }
-            }
-            return false;
-        }
-
-        function listWinningPermutations() {
-            const container = document.getElementById('permutation-list-container');
-            if (container.style.display === 'block') { container.style.display = 'none'; return; }
-            
-            const totalSuccesses = parseInt(document.getElementById('res-met-abs').textContent, 10) || 0;
-            if (storedWinningPermutations.length === 0) { alert("No winning permutations were stored."); return; }
-
-            let warning = '';
-            if (storedWinningPermutations.length < totalSuccesses) {
-                warning = `${storedWinningPermutations.length} unique permutations`;
-            }
-
-            storedWinningPermutations.sort((permA, permB) => {
-                for (let i = 0; i < permA.length; i++) {
-                    if (permA[i] < permB[i]) return -1;
-                    if (permA[i] > permB[i]) return 1;
-                }
-                return 0;
-            });
-
-            document.getElementById('permutation-warning').textContent = warning;
-            document.getElementById('permutation-list').textContent = storedWinningPermutations.map(p => p.join(', ')).join('\n');
-            container.style.display = 'block';
-        }
-    </script>
+/* init */
+createRoot();
+</script>
 </body>
 </html>
