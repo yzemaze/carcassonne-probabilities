@@ -11,7 +11,7 @@
     body {
         background-color: light-dark(#f4f4f4, #0c0c0c);
         font-family: sans-serif;
-        font-size: 0.85em;
+        font-size: 0.8em;
         color: light-dark(#333, #ccc);
         margin: 20px;
     }
@@ -121,7 +121,7 @@
         max-height: 400px;
         overflow: auto;
         font-family: monospace;
-        font-size: 0.9em;
+        font-size: 0.8rem;
         margin: 0;
         white-space: pre-wrap;
         word-break: break-all;
@@ -199,9 +199,13 @@
     <button class="full-width" onclick="run()">Run Simulation</button>
 </div>
 
-<h3>Results</h3>
-<div class="box-container">
-    <pre id="out"></pre>
+<div id="results-section" style="display: none;">
+    <h3>Results</h3>
+    <div class="box-container">
+        <div>Conditions met: <span id="met-value" style="font-weight: bold;"></span></div>
+        <div id="perms-display"></div>
+        <pre id="permutation-list"></pre>
+    </div>
 </div>
 
 <div id="footer">
@@ -423,23 +427,14 @@ function run() {
 
     if (evalNode(tree.firstElementChild,draws).ok) {
       met++;
-      perms.add(deck.map(t=>care.includes(t)?t:"_").join(","));
+      perms.add(deck.map(t=>care.includes(t)?t:"_").join(", "));
     }
   }
 
-  const notMet = sims - met;
-
-  out.textContent =
-`Simulations: ${sims}
-
-Conditions met:
-  ${met} (${(met/sims*100).toFixed(2)}%)
-
-Conditions not met:
-  ${notMet} (${(notMet/sims*100).toFixed(2)}%)
-
-Winning permutations (${perms.size}):
-${[...perms].sort().join("\n")}`;
+  document.getElementById("results-section").style.display = "block";
+  document.getElementById("met-value").textContent = `${(met/sims*100).toFixed(2)}%`;
+  document.getElementById("perms-display").textContent = `${perms.size} unique permutations`;
+  document.getElementById("permutation-list").textContent = [...perms].sort().join("\n");
 }
 
 /* init */
