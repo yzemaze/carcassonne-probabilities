@@ -30,12 +30,12 @@
         margin: 0 auto 20px auto;
         padding: 15px;
         width: 90%;
-        max-width: 600px;
+        max-width: 500px;
     }
 
     .settings {
         display: grid;
-        grid-template-columns: 2fr 1fr;
+        grid-template-columns: 1fr auto;
         align-items: center;
         gap: 5px;
     }
@@ -50,7 +50,6 @@
     }
 
     legend {
-        font-weight: bold;
         padding: 0 5px;
     }
 
@@ -86,13 +85,6 @@
         cursor: pointer;
         padding: 1px 5px;
         line-height: 24px;
-        font-size: 1.2em;
-        font-weight: bold;
-        text-align: center;
-        display: inline-flex;
-        justify-content: center;
-        align-items: center;
-        vertical-align: middle;
         margin-left: 5px;
     }
 
@@ -102,8 +94,18 @@
     }
 
     .remove-btn {
-        background: #ff4d4d;
-        color: white;
+				position: absolute;
+        top: -5px;
+        right: 5px;
+				padding: 0px 2px;
+  			line-height: 16px;
+        background-color: light-dark(#ff4d4d, #cc0000);
+        border: 1px solid light-dark(#cc0000, #ff4d4d);
+				color: white;
+    }
+		
+		.remove-btn:hover {
+        background-color: light-dark(#e60000, #ff6666);
     }
 
     .full-width {
@@ -131,13 +133,27 @@
         padding: 8px;
         margin: 8px 0;
         background-color: light-dark(#fafafa, #2a2a2a);
+        position: relative;
+        min-width: 0;
     }
 
-    .child {
-        margin-left: 20px;
-        border-left: 1px solid #ddd;
-        padding-left: 10px;
+    fieldset.node {
+        margin-inline-start: 0;
+        margin-inline-end: 0;
+        padding-block-start: 0.35em;
+        padding-inline-start: 0.75em;
+        padding-inline-end: 0.75em;
+        padding-block-end: 0.625em;
     }
+
+		fieldset[data-type="before"] > .child {
+				margin: 2px;
+		}
+
+		fieldset[data-type="before"] > .child > .label {
+				display: inline-block;
+				width: 30px;
+		}
 
     .label {
         font-weight: bold;
@@ -167,21 +183,18 @@
 <div class="box-container">
     <div class="settings">
         <label for="totalTiles">Total tiles:</label>
-        <input id="totalTiles" type="number" value="8" min="2" max="100">
+        <input id="totalTiles" type="number" value="71" min="2" max="71">
     </div>
     <div class="settings">
         <label for="careTiles">Specific tiles:</label>
-        <input id="careTiles" value="c,d" placeholder="e.g. c, d">
+        <input id="careTiles" value="" placeholder="a, b">
     </div>
     <div class="settings">
         <label for="sims">Simulations:</label>
         <input id="sims" type="number" value="100000" min="1000">
     </div>
 
-    <fieldset>
-        <legend>Logic Tree</legend>
-        <div id="tree"></div>
-    </fieldset>
+    <div id="tree"></div>
 
     <button class="full-width" onclick="run()">Run Simulation</button>
 </div>
@@ -214,8 +227,8 @@ function shuffle(a) {
 ========================= */
 function isBeforeBranch(el) {
   return el.classList.contains("child") &&
-         (el.querySelector(".label")?.textContent === "EARLIER" ||
-          el.querySelector(".label")?.textContent === "LATER");
+         (el.querySelector(".label")?.textContent === "1st" ||
+          el.querySelector(".label")?.textContent === "2nd");
 }
 
 function updateBeforeBranch(branch) {
@@ -232,40 +245,42 @@ function updateBeforeBranch(branch) {
 const tree = document.getElementById("tree");
 
 function createRoot() {
-  const d = document.createElement("div");
+  const d = document.createElement("fieldset");
   d.className = "node";
   d.dataset.type = "logic";
   d.innerHTML = `
-    <span class="label">ROOT LOGIC</span>
+    <legend>Logic Group</legend>
     <select class="op">
       <option>AND</option>
       <option>OR</option>
-      <option>XOR</option>
       <option>NAND</option>
       <option>NOR</option>
+      <option>XOR</option>
     </select>
-    <button class="action-btn add-btn" onclick="addCondition(this.parentNode)" title="Add Condition">+Condition</button>
-    <button class="action-btn add-btn" onclick="addLogic(this.parentNode)" title="Add Logic Group">+LogicGroup</button>
-    <button class="action-btn add-btn" onclick="addBefore(this.parentNode)" title="Add BEFORE">+Before</button>
+    <button class="action-btn add-btn" onclick="addCondition(this.parentNode)" title="Add Condition">+ Condition</button>
+    <button class="action-btn add-btn" onclick="addLogic(this.parentNode)" title="Add Logic Group">+ Logic Group</button>
+    <button class="action-btn add-btn" onclick="addBefore(this.parentNode)" title="Add Before">+ Before</button>
   `;
   tree.appendChild(d);
 }
 
 function addCondition(parent) {
-  const d = document.createElement("div");
+  const d = document.createElement("fieldset");
   d.className = "node child";
   d.dataset.type = "condition";
   d.innerHTML = `
-    <span class="label">COND</span>
+    <legend>Condition</legend>
+    <button class="action-btn remove-btn" onclick="removeNode(this)" title="Remove">×</button>
     <select class="player"><option>A</option><option>B</option></select>
+		draws
     <select class="quant">
       <option>at least</option>
       <option>at most</option>
       <option>exactly</option>
     </select>
-		draws <input class="num" type="number" value="1" min="0" style="width: 40px;">
-    of <input class="tiles" value="" placeholder="c, d" style="width: 80px;">
-    <button class="action-btn remove-btn" onclick="removeNode(this)" title="Remove">×</button>
+		of
+    <input class="num" type="number" value="1" min="0" style="width: 40px;">
+    <input class="tiles" value="" placeholder="a, b" style="width: 80px;">
   `;
   parent.appendChild(d);
 
@@ -273,11 +288,12 @@ function addCondition(parent) {
 }
 
 function addLogic(parent) {
-  const d = document.createElement("div");
+  const d = document.createElement("fieldset");
   d.className = "node child";
   d.dataset.type = "logic";
   d.innerHTML = `
-    <span class="label">LOGIC</span>
+    <legend>Logic Group</legend>
+    <button class="action-btn remove-btn" onclick="removeNode(this)" title="Remove">×</button>
     <select class="op">
       <option>AND</option>
       <option>OR</option>
@@ -285,10 +301,9 @@ function addLogic(parent) {
       <option>NAND</option>
       <option>NOR</option>
     </select>
-    <button class="action-btn add-btn" onclick="addCondition(this.parentNode)" title="Add Condition">+Condition</button>
-    <button class="action-btn add-btn" onclick="addLogic(this.parentNode)" title="Add Logic Group">+LogicGroup</button>
-    <button class="action-btn add-btn" onclick="addBefore(this.parentNode)" title="Add BEFORE">+Before</button>
-    <button class="action-btn remove-btn" onclick="removeNode(this)" title="Remove">×</button>
+    <button class="action-btn add-btn" onclick="addCondition(this.parentNode)" title="Add Condition">+ Condition</button>
+    <button class="action-btn add-btn" onclick="addLogic(this.parentNode)" title="Add Logic Group">+ Logic Group</button>
+    <button class="action-btn add-btn" onclick="addBefore(this.parentNode)" title="Add Before">+ Before</button>
   `;
   parent.appendChild(d);
 
@@ -296,25 +311,24 @@ function addLogic(parent) {
 }
 
 function addBefore(parent) {
-  const d = document.createElement("div");
+  const d = document.createElement("fieldset");
   d.className = "node child";
   d.dataset.type = "before";
   d.innerHTML = `
-    <span class="label">BEFORE</span>
-
-    <div class="child">
-      <span class="label">EARLIER</span>
-    <button class="action-btn add-btn" onclick="addCondition(this.parentNode)" title="Add Condition">+Condition</button>
-    <button class="action-btn add-btn" onclick="addLogic(this.parentNode)" title="Add Logic Group">+LogicGroup</button>
-    </div>
-
-    <div class="child">
-      <span class="label">LATER</span>
-    <button class="action-btn add-btn" onclick="addCondition(this.parentNode)" title="Add Condition">+Condition</button>
-    <button class="action-btn add-btn" onclick="addLogic(this.parentNode)" title="Add Logic Group">+LogicGroup</button>
-    </div>
-
+    <legend>Before</legend>
     <button class="action-btn remove-btn" onclick="removeNode(this)" title="Remove">×</button>
+
+    <div class="child">
+      <span class="label">1st</span>
+      <button class="action-btn add-btn" onclick="addCondition(this.parentNode)" title="Add Condition">+ Condition</button>
+      <button class="action-btn add-btn" onclick="addLogic(this.parentNode)" title="Add Logic Group">+ Logic Group</button>
+    </div>
+
+    <div class="child">
+      <span class="label">2nd</span>
+      <button class="action-btn add-btn" onclick="addCondition(this.parentNode)" title="Add Condition">+ Condition</button>
+      <button class="action-btn add-btn" onclick="addLogic(this.parentNode)" title="Add Logic Group">+ Logic Group</button>
+    </div>
   `;
   parent.appendChild(d);
 }
