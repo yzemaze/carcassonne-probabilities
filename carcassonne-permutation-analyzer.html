@@ -16,7 +16,7 @@
         margin: 20px;
     }
 
-    h1, h2, h3, #footer {
+    h1, h2, #footer {
         text-align: center;
         margin: 15px 0 10px 0;
     }
@@ -200,11 +200,14 @@
 </div>
 
 <div id="results-section" style="display: none;">
-    <h3>Results</h3>
+    <h2>Results</h2>
     <div class="box-container">
         <div>Conditions met: <span id="met-value" style="font-weight: bold;"></span></div>
-        <div id="perms-display"></div>
-        <pre id="permutation-list"></pre>
+        <button id="list-perms-btn" onclick="listWinningPermutations()" style="margin-bottom: 5px;">List Winning Permutations</button>
+        <div id="perms-container" style="display: none;">
+            <div id="perms-display" style="margin-bottom: 5px;"></div>
+            <pre id="permutation-list"></pre>
+        </div>
     </div>
 </div>
 
@@ -433,8 +436,17 @@ function run() {
 
   document.getElementById("results-section").style.display = "block";
   document.getElementById("met-value").textContent = `${(met/sims*100).toFixed(2)}%`;
+  
   document.getElementById("perms-display").textContent = `${perms.size} unique permutations`;
   document.getElementById("permutation-list").textContent = [...perms].sort().join("\n");
+  
+  document.getElementById("list-perms-btn").style.display = "inline-block";
+  document.getElementById("perms-container").style.display = "none";
+}
+
+function listWinningPermutations() {
+    document.getElementById("list-perms-btn").style.display = "none";
+    document.getElementById("perms-container").style.display = "block";
 }
 
 /* init */
