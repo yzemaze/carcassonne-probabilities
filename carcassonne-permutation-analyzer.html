@@ -224,9 +224,6 @@
     </p>
 </div>
 <script>
-/* =========================
-   Utilities
-========================= */
 function shuffle(a) {
   for (let i=a.length-1;i>0;i--) {
     const j=Math.floor(Math.random()*(i+1));
@@ -234,9 +231,6 @@ function shuffle(a) {
   }
 }
 
-/* =========================
-   Helpers for BEFORE logic
-========================= */
 function isBeforeBranch(el) {
   return el.classList.contains("before-branch")
 }
@@ -249,9 +243,6 @@ function updateBeforeBranch(branch) {
 	});
 }
 
-/* =========================
-   Node creation
-========================= */
 const tree = document.getElementById("tree");
 
 function createRoot() {
@@ -353,9 +344,6 @@ function removeNode(btn) {
   }
 }
 
-/* =========================
-   Evaluation
-========================= */
 function evalNode(node, draws) {
   const type = node.dataset.type;
 
@@ -413,9 +401,6 @@ function evalNode(node, draws) {
   }
 }
 
-/* =========================
-   Run
-========================= */
 function run() {
   const total = +totalTiles.value;
   const care = careTiles.value.split(",").map(x=>x.trim()).filter(Boolean);
@@ -452,7 +437,6 @@ function listWinningPermutations() {
     document.getElementById("perms-container").style.display = "block";
 }
 
-/* init */
 createRoot();
 </script>
 </body>
