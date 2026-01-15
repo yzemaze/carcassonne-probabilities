@@ -238,9 +238,10 @@ function shuffle(a) {
    Helpers for BEFORE logic
 ========================= */
 function isBeforeBranch(el) {
-  return el.classList.contains("child") &&
-         (el.querySelector(".label")?.textContent === "1st" ||
-          el.querySelector(".label")?.textContent === "2nd");
+  // Before branches are <div>s with class "child" but NOT class "node".
+  // Logic/Condition/Before nodes are <fieldset>s with class "node" (and "child" if nested).
+  // We check for class "child" and ABSENCE of class "node".
+  return el.classList.contains("child") && !el.classList.contains("node");
 }
 
 function updateBeforeBranch(branch) {
