@@ -238,10 +238,7 @@ function shuffle(a) {
    Helpers for BEFORE logic
 ========================= */
 function isBeforeBranch(el) {
-  // Before branches are <div>s with class "child" but NOT class "node".
-  // Logic/Condition/Before nodes are <fieldset>s with class "node" (and "child" if nested).
-  // We check for class "child" and ABSENCE of class "node".
-  return el.classList.contains("child") && !el.classList.contains("node");
+  return el.classList.contains("before-branch")
 }
 
 function updateBeforeBranch(branch) {
@@ -331,13 +328,13 @@ function addBefore(parent) {
     <legend>Before</legend>
     <button class="action-btn remove-btn" onclick="removeNode(this)" title="Remove">×</button>
 
-    <div class="child">
+    <div class="child before-branch">
       <span class="label">1st</span>
       <button class="action-btn add-btn" onclick="addCondition(this.parentNode)" title="Add Condition">+ Condition</button>
       <button class="action-btn add-btn" onclick="addLogic(this.parentNode)" title="Add Logic Group">+ Logic Group</button>
     </div>
 
-    <div class="child">
+    <div class="child before-branch">
       <span class="label">2nd</span>
       <button class="action-btn add-btn" onclick="addCondition(this.parentNode)" title="Add Condition">+ Condition</button>
       <button class="action-btn add-btn" onclick="addLogic(this.parentNode)" title="Add Logic Group">+ Logic Group</button>
