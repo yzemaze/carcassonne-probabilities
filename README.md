@@ -49,22 +49,25 @@ B is the 2nd player and according to BGA’s interface there are 6 tiles remaini
 4. In case of success A would have to wait 0.78 moves on average. (0 = their next move, 1 = their move after that etc. )
 
 ## Permutation Analyzer Example
-9 tiles left: straight, monastery, vanilla, curve, dagger and 4 unspecified ones. B has attacked a field and needs monastery or vanilla to connect. A needs to draw either the straight to execute a block of B’s field attack, or A needs to get the vanilla or dagger and a cow to complete a city (to outscore the field attack).
+9 tiles left: straight, monastery, vanilla, curve, dagger and 4 unspecified ones. B has attacked a field and needs monastery or vanilla to connect. A needs to draw either the straight to execute a block of B’s field attack or draw the pieces B needs, or A needs to get the vanilla or dagger and a cow to complete a city (to outscore the field attack).
 ![screenshot-ex5](/img/ex5-permutation-analyzer.png?raw=true)
 1. 9 tiles remaining
 2. straight, monastery, vanilla, cow, dagger
-3. Add a Before Group
-4. Add a Logic Group
-5. Change Operator to OR
-6. Add a Condition
-7. A needs a straight
-8. Add a Condition
-9. B needs (at least 1 of) monastery or vanilla
-10. Add Condition (twice), leave AND unchanged
-11. A needs to get (at least 1 of) vanilla or dagger
-12. and A needs the cow to complete a city.
-13. Run Simulation
-14. A will succeed in roughly 56.31% of cases.
+(
+	(
+3. A draws a straight
+4. BEFORE
+5. B draws monastery or vanilla
+	)
+6. OR
+7. A draws monastery and vanilla
+)
+8. OR
+(
+9. A draws vanilla or dagger
+10. AND
+11. A draws cow
+)
 
 ## Feedback, problems, ideas etc.
 Please start a [discussion](https://github.com/yzemaze/carcassonne-probabilities/discussions) or contact me on BGA or Discord.
