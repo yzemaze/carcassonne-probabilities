@@ -77,7 +77,21 @@
 			cursor: pointer;
 		}
 
-		button:hover {
+		button.loading {
+			background: linear-gradient(to right, 
+				light-dark(#4CAF50, #005B04) var(--progress, 0%), 
+				light-dark(#ccc, #444) var(--progress, 0%));
+			cursor: not-allowed;
+			animation: pulse 1.5s infinite ease-in-out;
+		}
+
+		@keyframes pulse {
+			0% { opacity: 1; }
+			50% { opacity: 0.7; }
+			100% { opacity: 1; }
+		}
+
+		button:hover:not(.loading) {
 			background-color: light-dark(#45a049, #0f6913);
 		}
 
@@ -158,25 +172,41 @@
 	</div>
 	<script src="carcassonne-draw-probabilities+distribution.js"></script>
 	<script>
-	function runSimulation() {
+	async function runSimulation() {
+			const btn = document.querySelector("#simulationForm button");
+			btn.disabled = true;
+			btn.classList.add('loading');
+			btn.style.setProperty('--progress', '0%');
+
 			const tilesRemaining = parseInt(document.getElementById("tilesRemaining").value) || 71;
 			const tilesA = parseInt(document.getElementById("tilesA").value) || 0;
 			const tilesB = parseInt(document.getElementById("tilesB").value) || 0;
 			const tilesC = parseInt(document.getElementById("tilesC").value) || 0;
 			const iterations = parseInt(document.getElementById("iterations").value) || 100000;
 			const tiles = { A: tilesA, B: tilesB, C: tilesC };
-			const results = calculate(tilesRemaining, tiles, iterations);
+			
+			try {
+				const results = await calculate(tilesRemaining, tiles, iterations, (progress) => {
+						btn.style.setProperty('--progress', `${progress}%`);
+				});
 
-			document.getElementById("probA").textContent = (results.probability.A * 100).toFixed(1) + "%";
-			document.getElementById("probB").textContent = (results.probability.B * 100).toFixed(1) + "%";
-			document.getElementById("probNeither").textContent = ((1 - results.probability.A - results.probability.B) * 100).toFixed(1) + "%";
-			document.getElementById("avgWaitA").textContent = results.avgWait.A.toFixed(1);
-			document.getElementById("avgWaitB").textContent = results.avgWait.B.toFixed(1);
+				document.getElementById("probA").textContent = (results.probability.A * 100).toFixed(1) + "%";
+				document.getElementById("probB").textContent = (results.probability.B * 100).toFixed(1) + "%";
+				document.getElementById("probNeither").textContent = ((1 - results.probability.A - results.probability.B) * 100).toFixed(1) + "%";
+				document.getElementById("avgWaitA").textContent = results.avgWait.A.toFixed(1);
+				document.getElementById("avgWaitB").textContent = results.avgWait.B.toFixed(1);
 
-			generateTilesDrawnProbTable(results.tilesDrawnProb);
+				generateTilesDrawnProbTable(results.tilesDrawnProb);
+			} catch (e) {
+				alert(e.message);
+			} finally {
+				btn.disabled = false;
+				btn.classList.remove('loading');
+				btn.style.removeProperty('--progress');
+			}
 	}
 
-	function calculate(tilesRemaining, tiles, iterations) {
+	async function calculate(tilesRemaining, tiles, iterations, onProgress) {
 			if (tilesRemaining < tiles.A + tiles.B + tiles.C) {
 					throw new Error("tiles remaining < tiles A+B+C");
 			}
@@ -193,40 +223,46 @@
 			const waits = { countA: 0, sumA: 0, countB: 0, sumB: 0 };
 			const tilesDrawn = { AA: {}, AC: {}, AAC: {}, BB: {}, BC: {}, BBC: {} };
 
-			for (let i = 0; i < iterations; i++) {
-					tileList.sort(() => Math.random() - 0.5); // Shuffle the array
-					const tileListA = tileList.slice(0, half);
-					const tileListB = tileList.slice(half, tilesRemaining);
+			const chunkSize = Math.max(100, Math.floor(iterations / 100));
 
-					/* check success for A and B */
-					index.A = tileListA.includes("A") ? tileListA.indexOf("A") : tilesRemaining + 1;
-					index.C = tileListA.includes("C") ? tileListA.indexOf("C") : tilesRemaining + 1;
-					index.A = Math.min(index.A, index.C);
-					index.B = tileListB.includes("B") ? tileListB.indexOf("B") : tilesRemaining + 1;
-					index.C = tileListB.includes("C") ? tileListB.indexOf("C") : tilesRemaining + 1;
-					index.B = Math.min(index.B, index.C);
-					if (Math.min(index.A, index.B) < tilesRemaining) {
-							if (index.A <= index.B) {
-									waits.countA++;
-									waits.sumA += index.A;
-									successes.A++;
-							} else {
-									waits.countB++;
-									waits.sumB += index.B;
-									successes.B++;
+			for (let i = 0; i < iterations; i += chunkSize) {
+					const end = Math.min(i + chunkSize, iterations);
+					for (let j = i; j < end; j++) {
+							tileList.sort(() => Math.random() - 0.5); // Shuffle the array
+							const tileListA = tileList.slice(0, half);
+							const tileListB = tileList.slice(half, tilesRemaining);
+
+							/* check success for A and B */
+							index.A = tileListA.includes("A") ? tileListA.indexOf("A") : tilesRemaining + 1;
+							index.C = tileListA.includes("C") ? tileListA.indexOf("C") : tilesRemaining + 1;
+							index.A = Math.min(index.A, index.C);
+							index.B = tileListB.includes("B") ? tileListB.indexOf("B") : tilesRemaining + 1;
+							index.C = tileListB.includes("C") ? tileListB.indexOf("C") : tilesRemaining + 1;
+							index.B = Math.min(index.B, index.C);
+							if (Math.min(index.A, index.B) < tilesRemaining) {
+									if (index.A <= index.B) {
+											waits.countA++;
+											waits.sumA += index.A;
+											successes.A++;
+									} else {
+											waits.countB++;
+											waits.sumB += index.B;
+											successes.B++;
+									}
 							}
+
+							/* calculate frequency for table */
+							const freqA = frequency(tileListA);
+							tilesDrawn.AA[freqA.A] = (tilesDrawn.AA[freqA.A] || 0) + 1;
+							tilesDrawn.AC[freqA.C] = (tilesDrawn.AC[freqA.C] || 0) + 1;
+							tilesDrawn.AAC[freqA.A + freqA.C] = (tilesDrawn.AAC[freqA.A + freqA.C] || 0) + 1;
+							const freqB = frequency(tileListB);
+							tilesDrawn.BB[freqB.B] = (tilesDrawn.BB[freqB.B] || 0) + 1;
+							tilesDrawn.BC[freqB.C] = (tilesDrawn.BC[freqB.C] || 0) + 1;
+							tilesDrawn.BBC[freqB.B + freqB.C] = (tilesDrawn.BBC[freqB.B + freqB.C] || 0) + 1;
 					}
-
-					/* calculate frequency for table */
-					freqA = frequency(tileListA);
-					tilesDrawn.AA[freqA.A] = (tilesDrawn.AA[freqA.A] || 0) + 1;
-					tilesDrawn.AC[freqA.C] = (tilesDrawn.AC[freqA.C] || 0) + 1;
-					tilesDrawn.AAC[freqA.A + freqA.C] = (tilesDrawn.AAC[freqA.A + freqA.C] || 0) + 1;
-					freqB = frequency(tileListB);
-					tilesDrawn.BB[freqB.B] = (tilesDrawn.BB[freqB.B] || 0) + 1;
-					tilesDrawn.BC[freqB.C] = (tilesDrawn.BC[freqB.C] || 0) + 1;
-					tilesDrawn.BBC[freqB.B + freqB.C] = (tilesDrawn.BBC[freqB.B + freqB.C] || 0) + 1;
-
+					if (onProgress) onProgress((end / iterations) * 100);
+					await new Promise(resolve => setTimeout(resolve, 0));
 			}
 
 			const probability = {

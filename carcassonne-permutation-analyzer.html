@@ -71,7 +71,21 @@
         cursor: pointer;
     }
 
-		button[disabled] {
+    button.loading {
+        background: linear-gradient(to right, 
+            light-dark(#4CAF50, #005B04) var(--progress, 0%), 
+            light-dark(#ccc, #444) var(--progress, 0%));
+        cursor: not-allowed;
+        animation: pulse 1.5s infinite ease-in-out;
+    }
+
+    @keyframes pulse {
+        0% { opacity: 1; }
+        50% { opacity: 0.7; }
+        100% { opacity: 1; }
+    }
+
+		button[disabled]:not(.loading) {
 				background-color: gray;
 		}
 
@@ -401,25 +415,38 @@ function evalNode(node, draws) {
   }
 }
 
-function run() {
-  const total = +totalTiles.value;
-  const care = careTiles.value.split(",").map(x=>x.trim()).filter(Boolean);
+async function run() {
+  const btn = document.querySelector('button.full-width');
+  btn.disabled = true;
+  btn.classList.add('loading');
+  btn.style.setProperty('--progress', '0%');
+
+  const total = +document.getElementById("totalTiles").value;
+  const care = document.getElementById("careTiles").value.split(",").map(x=>x.trim()).filter(Boolean);
   const sims = +document.getElementById("sims").value;
 
   let met = 0;
   const perms = new Set();
 
-  for (let i=0;i<sims;i++) {
-    const deck=[];
-    for (let j=0;j<total;j++) deck.push(care[j]||"_");
-    shuffle(deck);
+  const chunkSize = Math.max(100, Math.floor(sims / 100));
+  for (let i = 0; i < sims; i += chunkSize) {
+    const end = Math.min(i + chunkSize, sims);
+    for (let j = i; j < end; j++) {
+      const deck=[];
+      for (let k=0;k<total;k++) deck.push(care[k]||"_");
+      shuffle(deck);
 
-    const draws = deck.map((t,i)=>({ tile:t, player:i%2===0?"A":"B" }));
+      const draws = deck.map((t,k)=>({ tile:t, player:k%2===0?"A":"B" }));
 
-    if (evalNode(tree.firstElementChild,draws).ok) {
-      met++;
-      perms.add(deck.map(t=>care.includes(t)?t:"_").join(", "));
+      if (evalNode(tree.firstElementChild,draws).ok) {
+        met++;
+        perms.add(deck.map(t=>care.includes(t)?t:"_").join(", "));
+      }
     }
+    
+    const progress = (end / sims) * 100;
+    btn.style.setProperty('--progress', `${progress}%`);
+    await new Promise(resolve => setTimeout(resolve, 0));
   }
 
   document.getElementById("results-section").style.display = "block";
@@ -430,6 +457,10 @@ function run() {
   
   document.getElementById("list-perms-btn").style.display = "inline-block";
   document.getElementById("perms-container").style.display = "none";
+
+  btn.disabled = false;
+  btn.classList.remove('loading');
+  btn.style.removeProperty('--progress');
 }
 
 function listWinningPermutations() {
